@@ -114,7 +114,7 @@ $(document).ready(function(){
       document.execCommand("copy");
       tempElement.remove();
 
-      showToast("复制成功");
+      showToast(t('复制成功','Copied'));
     });
 
     // 导出
@@ -144,7 +144,7 @@ $(document).ready(function(){
       var workbook = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, "OrderList");
       XLSX.writeFile(workbook, "order_list.xlsx");
-      showToast("导出成功");
+      showToast(t('导出成功','Exported'));
     });
 
     // 打开、关闭扫描
@@ -183,7 +183,7 @@ $(document).ready(function(){
         }
         // 再次调整列宽，保持对齐
         orderTable.columns.adjust();
-        showToast("添加成功");
+        showToast(t('添加成功','Added')); 
         
         // 隐藏数量调整，重置
         $("#quantityModal").addClass("d-none");
@@ -215,7 +215,7 @@ $(document).ready(function(){
 
     // 刷新关闭提示
     window.onbeforeunload = function(e) {
-        return "确定要刷新或关闭吗？未保存的数据可能会丢失。";
+        return t('确定要刷新或关闭吗？未保存的数据可能会丢失。','Leave page? Unsaved data may be lost.');
     };
 
     // modal事件
@@ -252,9 +252,9 @@ function openScannerModal(){
     $("#loadingIndicator").removeClass("d-none");
     $("#loadingIndicator").html(`
         <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">加载中...</span>
+            <span class="visually-hidden"><span class="lang-zh">加载中...</span><span class="lang-en">Loading...</span></span>
         </div>
-        <p>正在启动摄像头...</p>
+        <p><span class="lang-zh">正在启动摄像头...</span><span class="lang-en">Starting camera...</span></p>
     `);
     
     // 检查是否支持 BarcodeDetector API
@@ -684,13 +684,13 @@ function handleScannerError(err){
     $("#scanner-container").html(`
         <div class="scanner-error">
             <i class="fas fa-exclamation-triangle"></i>
-            <p>无法访问摄像头</p>
+            <p><span class="lang-zh">无法访问摄像头</span><span class="lang-en">Cannot access camera</span></p>
             <ul class="text-start">
-                <li>您已授予摄像头访问权限</li>
-                <li>您使用的是HTTPS连接</li>
-                <li>您的设备有可用的摄像头</li>
+                <li><span class="lang-zh">您已授予摄像头访问权限</span><span class="lang-en">Camera permission granted</span></li>
+                <li><span class="lang-zh">您使用的是HTTPS连接</span><span class="lang-en">Using HTTPS connection</span></li>
+                <li><span class="lang-zh">您的设备有可用的摄像头</span><span class="lang-en">Device has a camera</span></li>
             </ul>
-            <button class="btn btn-primary mt-3" onclick="requestCameraPermission()">重试访问摄像头</button>
+            <button class="btn btn-primary mt-3" onclick="requestCameraPermission()"><span class="lang-zh">重试访问摄像头</span><span class="lang-en">Retry Camera Access</span></button>
         </div>
     `);
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>使用教程</title>
+    <title id="pageTitle">使用教程</title>
     <!-- Bootstrap & FontAwesome -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -59,7 +59,7 @@
 </head>
 <body>
     <main class="container my-5">
-        <h1 class="fw-bold mb-2" style="color: black !important;padding-bottom: 1rem; font-size: 2rem;">软件使用教程</h1>
+        <h1 class="fw-bold mb-2" style="color: black !important;padding-bottom: 1rem; font-size: 2rem;"><span class="lang-zh">软件使用教程</span><span class="lang-en">Tutorial</span></h1>
         <!-- ===== 详细操作流程 ===== -->
         <section class="mb-5">
             <h3 class="fw-bold mb-2"><i class="fas fa-boxes-stacked me-2"></i>盘点模式</h3>
@@ -68,57 +68,57 @@
                 <iframe class="rounded" src="https://www.youtube.com/embed/jfrv4BqKj_U" title="Mode2 Tutorial" allowfullscreen></iframe>
             </div>
             <ol class="lh-lg ps-3">
-                <li>在首页点击「盘点模式」。</li>
-                <li>步骤&nbsp;1：<strong>上传商品清单</strong>
+                <li><span class="lang-zh">在首页点击「盘点模式」。</span><span class="lang-en">Open "Inventory Mode" from home.</span></li>
+                <li><span class="lang-zh">步骤&nbsp;1：<strong>上传商品清单</strong></span><span class="lang-en">Step 1: <strong>Upload product list</strong></span>
                     <ul>
-                        <li>点击「上传商品清单」并选择包含&nbsp;Code / Name / Count&nbsp;的文件。</li>
+                        <li><span class="lang-zh">点击「上传商品清单」并选择包含&nbsp;Code / Name / Count&nbsp;的文件。</span><span class="lang-en">Choose a file containing Code/Name/Count.</span></li>
                     </ul>
                 </li>
-                <li>步骤&nbsp;2：<strong>设定日期范围</strong>
+                <li><span class="lang-zh">步骤&nbsp;2：<strong>设定日期范围</strong></span><span class="lang-en">Step 2: <strong>Set date ranges</strong></span>
                     <ul>
-                        <li>选择开始 / 结束日期后点「确认」。可重复添加多个不重叠的范围。</li>
-                        <li>日期旁的「×」可删除对应范围。</li>
+                        <li><span class="lang-zh">选择开始 / 结束日期后点「确认」。可重复添加多个不重叠的范围。</span><span class="lang-en">Select start/end dates and confirm. Multiple non-overlapping ranges are allowed.</span></li>
+                        <li><span class="lang-zh">日期旁的「×」可删除对应范围。</span><span class="lang-en">Use "×" to delete a range.</span></li>
                     </ul>
                 </li>
-                <li>步骤&nbsp;3：点击「完成配置，开始盘点」，系统生成带日期列的统计表。</li>
-                <li>盘点过程中可选择两种方式更新数量：
+                <li><span class="lang-zh">步骤&nbsp;3：点击「完成配置，开始盘点」，系统生成带日期列的统计表。</span><span class="lang-en">Step 3: Click "Finish" to create the table with date columns.</span></li>
+                <li><span class="lang-zh">盘点过程中可选择两种方式更新数量：</span><span class="lang-en">During inventory there are two ways to update counts:</span>
                     <ul>
-                        <li><strong>扫描条码</strong>：
+                        <li><strong><span class="lang-zh">扫描条码</span><span class="lang-en">Scan barcode</span></strong>：
                             <ol class="mt-2">
-                                <li>点击底部「扫描」> 对准条码（可能需要调整角度）。</li>
-                                <li>出现「确认条码」窗口，可修改后点击「确认并识别日期」。</li>
-                                <li>摄像头会切换到日期识别，框住日期直至识别（可能需要调整角度）。</li>
-                                <li>确认日期后，系统将对应单元格数量&nbsp;+1。</li>
+                                <li><span class="lang-zh">点击底部「扫描」> 对准条码（可能需要调整角度）。</span><span class="lang-en">Tap "Scan" and aim at the code.</span></li>
+                                <li><span class="lang-zh">出现「确认条码」窗口，可修改后点击「确认并识别日期」。</span><span class="lang-en">Confirm the barcode then scan the date.</span></li>
+                                <li><span class="lang-zh">摄像头会切换到日期识别，框住日期直至识别（可能需要调整角度）。</span><span class="lang-en">Camera switches to OCR; align date until recognized.</span></li>
+                                <li><span class="lang-zh">确认日期后，系统将对应单元格数量&nbsp;+1。</span><span class="lang-en">After confirming, quantity increases by 1.</span></li>
                             </ol>
                         </li>
-                        <li><strong>直接编辑</strong>：点击任意单元格，输入数量后失焦即可保存。</li>
+                        <li><strong><span class="lang-zh">直接编辑</span><span class="lang-en">Edit directly</span></strong>：<span class="lang-zh">点击任意单元格，输入数量后失焦即可保存。</span><span class="lang-en">Click a cell and edit the number.</span></li>
                     </ul>
                 </li>
-                <li>盘点结束后，同样可使用底部「复制」或「导出」输出结果。强烈建议导出。</li>
+                <li><span class="lang-zh">盘点结束后，同样可使用底部「复制」或「导出」输出结果。强烈建议导出。</span><span class="lang-en">After finishing, use "Copy" or "Export" to save results (export recommended).</span></li>
             </ol>
         </section>
 
         <section>
-            <h3 class="fw-bold mb-2"><i class="fas fa-list-ul me-2"></i>点货模式</h3>
+            <h3 class="fw-bold mb-2"><i class="fas fa-list-ul me-2"></i><span class="lang-zh">点货模式</span><span class="lang-en">Counting Mode</span></h3>
             <!-- Mode1 视频占位 -->
             <div class="ratio ratio-16x9 mb-3">
                 <div class="d-flex align-items-center justify-content-center bg-light text-muted">Mode&nbsp;1&nbsp;视频即将上线</div>
             </div>
             <ol class="lh-lg ps-3">
-                <li>在首页点击「点货模式」。</li>
-                <li>点击底部「扫描」按钮，首次会弹出摄像头画面。</li>
-                <li>对准商品条码，系统识别后会弹出「数量调整」窗口：
+                <li><span class="lang-zh">在首页点击「点货模式」。</span><span class="lang-en">Select "Counting Mode" on home page.</span></li>
+                <li><span class="lang-zh">点击底部「扫描」按钮，首次会弹出摄像头画面。</span><span class="lang-en">Tap "Scan" to open the camera.</span></li>
+                <li><span class="lang-zh">对准商品条码，系统识别后会弹出「数量调整」窗口：</span><span class="lang-en">Aim at the barcode and adjust quantity:</span>
                     <ul>
-                        <li>如需修改条码，可直接点选并编辑。</li>
-                        <li>使用「+／-」按钮调节数量，或直接在表格里修改。</li>
-                        <li>确认无误后点击「确定」完成添加。</li>
+                        <li><span class="lang-zh">如需修改条码，可直接点选并编辑。</span><span class="lang-en">Barcode can be edited manually.</span></li>
+                        <li><span class="lang-zh">使用「+／-」按钮调节数量，或直接在表格里修改。</span><span class="lang-en">Use +/- buttons or edit the table.</span></li>
+                        <li><span class="lang-zh">确认无误后点击「确定」完成添加。</span><span class="lang-en">Press "Confirm" to add.</span></li>
                     </ul>
                 </li>
-                <li>如条码无法扫描，可点击「手动添加」，在新增行中手动输入 Code 与数量。</li>
-                <li>全部录入完成后：
+                <li><span class="lang-zh">如条码无法扫描，可点击「手动添加」，在新增行中手动输入 Code 与数量。</span><span class="lang-en">If scanning fails, use "Add Manually" to input code and quantity.</span></li>
+                <li><span class="lang-zh">全部录入完成后：</span><span class="lang-en">When finished:</span>
                     <ul>
-                        <li>点击「复制」将整表内容复制到剪贴板。</li>
-                        <li>点击「导出」生成&nbsp;Excel&nbsp;文件。</li>
+                        <li><span class="lang-zh">点击「复制」将整表内容复制到剪贴板。</span><span class="lang-en">Click "Copy" to copy the table.</span></li>
+                        <li><span class="lang-zh">点击「导出」生成&nbsp;Excel&nbsp;文件。</span><span class="lang-en">Click "Export" for an Excel file.</span></li>
                     </ul>
                 </li>
             </ol>
@@ -130,5 +130,14 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="langToggle" class="lang-fab"><i class="fas fa-language"></i></div>
+    <script src="{{ url_for('static', filename='lang.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded',function(){
+        function setTitle(){ document.title=t('使用教程','Tutorial'); }
+        setTitle();
+        document.body.addEventListener('langChanged',setTitle);
+    });
+    </script>
 </body>
-</html> 
+</html>
