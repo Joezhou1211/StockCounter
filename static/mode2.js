@@ -90,7 +90,6 @@ $(document).ready(function(){
     // 底部按钮事件
     $('#scanBtn').on('click', openScanner);
     $('#closeScanner').on('click', closeScannerModal);
-    $('#copyBtn').on('click', copyTable);
     $('#exportBtn').on('click', exportTable);
 
     // 新增：条码确认弹窗的按钮事件
@@ -214,15 +213,20 @@ function renderDateRangeList(){
     });
 }
 
+function rangeToInterval(start, end){
+    let s = start ? start.getTime() : -Infinity;
+    let e = end   ? end.getTime()   :  Infinity;
+    if(start && !end){ s += 1; }   // After, exclude the day
+    if(!start && end){ e -= 1; }   // Before, exclude the day
+    return {s,e};
+}
+
 function isOverlap(s1,e1){
+    const nInt = rangeToInterval(s1,e1);
     for(const r of dateRanges){
-        const s2 = r.start, e2 = r.end;
-        // 计算交集
-        if( ( !e1 || !s2 || e1 >= s2 ) && ( !e2 || !s1 || e2 >= s1 ) ){
-            // 判断具体重叠条件
-            if( ( !s1 || !e2 || s1 <= e2 ) && ( !e1 || !s2 || s2 <= e1 ) ){
-                return true;
-            }
+        const rInt = rangeToInterval(r.start,r.end);
+        if(!(nInt.e < rInt.s || rInt.e < nInt.s)){
+            return true;
         }
     }
     return false;
@@ -245,7 +249,7 @@ function buildTable(){
     // 生成数据
     const data = rawRows.map(row=>{
         const arr = [row.code, row.count.toString()];
-        dateRanges.forEach(r=>{ if(!r.hidden){ arr.push('0'); }});
+        dateRanges.forEach(r=>{ if(!r.hidden){ arr.push(''); }});
         return arr;
     });
 
@@ -300,9 +304,9 @@ function buildTable(){
 
     // 手动添加按钮
     $('#addManualBtn').off('click').on('click', function(){
-        // 构造空行：Code 默认"新数据"，Count 0，其余列 0
+        // 构造空行：Code 默认"新数据"，Count 0，其余列留空
         const newRow = ['新数据','0'];
-        dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push('0'); }});
+        dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push(''); }});
         inventoryTable.row.add(newRow).draw(false);
         inventoryTable.page('last').draw('page');
     });
@@ -479,7 +483,7 @@ function updateCountForCode(code){
     if(!found){
         // 创建新行
         const newRow = [code,'1'];
-        dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push('0'); }});
+        dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push(''); }});
         inventoryTable.row.add(newRow).draw(false);
     }
 }
@@ -518,10 +522,9 @@ function visibleRangeIndex(totalIdx){
 }
 
 function isDateInRange(dateStr,start,end){
-    const d = new Date(dateStr);
-    if(start && d < start){return false;}
-    if(end && d > end){return false;}
-    return true;
+    const d = new Date(dateStr).getTime();
+    const interval = rangeToInterval(start,end);
+    return d >= interval.s && d <= interval.e;
 }
 
 // ------------ 导出 & 复制 ------------
@@ -613,6 +616,10 @@ function openOcrModal(){
     $('#ocrResult').removeClass('d-none');        // 允许显示识别文本
     $('#ocrConfirmArea').addClass('d-none').removeClass('quantity-modal');
     $('#ocrResult').text('');
+    $('#confirmTitle').text('确认日期');
+    $('#confirmDesc').text('识别到日期如下(可修改)');
+    $('#selectedRangeDisplay').addClass('d-none');
+    $('#dateInput').removeClass('d-none');
     $('#ocrOverlayText').removeClass('d-none');
     $('#ocrModal').modal('show');
     $('#flashToggleInOcr').show();
@@ -659,7 +666,7 @@ function openOcrModal(){
     });
 
     // 绑定确认按钮
-    $('#confirmDateBtn').off('click').on('click', function(){
+    $('#confirmDateBtn').text('确认').off('click').on('click', function(){
         const dateStr = $('#dateInput').val().trim();
         if(dateStr){
             updateCountForDate(currentCode, dateStr);
@@ -669,7 +676,7 @@ function openOcrModal(){
     });
 
     // 绑定重新识别按钮
-    $('#retryOcrBtn').off('click').on('click', function(){
+    $('#retryOcrBtn').text('重新识别').off('click').on('click', function(){
         // 恢复 UI
         $('#ocrConfirmArea').addClass('d-none');
         $('#ocrResult').removeClass('d-none').text('');
@@ -700,9 +707,8 @@ function openOcrModal(){
         },500);
     });
 
-    // 绑定手动输入按钮
+    // 手动选择日期按钮
     $('#manualDateBtn').off('click').on('click',function(){
-        // 直接进入手动输入界面
         if(ocrInterval){clearInterval(ocrInterval);} // 停止 OCR 定时器
         const videoEl=document.getElementById('ocrVideo');
         if(videoEl) videoEl.pause();
@@ -712,8 +718,8 @@ function openOcrModal(){
         $('#ocrVideo').addClass('d-none');
         $('#ocrResult').addClass('d-none');
 
-        $('#dateInput').val('');
-        $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
+        generateManualOptions();
+        $('#manualSelectArea').removeClass('d-none').addClass('quantity-modal');
     });
 }
 
@@ -764,6 +770,70 @@ function captureOcrFrame(videoEl){
             resolve(result);
         });
     });
+}
+
+// -------- 手动选择日期 ---------
+function generateManualOptions(){
+    const container = $('#manualSelectArea');
+    container.empty();
+    const buttons = $('<div id="rangeButtons" class="d-grid gap-2"></div>');
+    const visible = dateRanges.filter(r=>!r.hidden);
+    const opts = [];
+    if(visible.length && visible[0].start){
+        opts.push({label:`Before ${formatDate(visible[0].start)}`,start:null,end:visible[0].start});
+    }
+    visible.forEach(r=>opts.push({label:r.label,start:r.start,end:r.end}));
+    const last = visible[visible.length-1];
+    if(last && last.end){
+        opts.push({label:`After ${formatDate(last.end)}`,start:last.end,end:null});
+    }
+    container.data('opts', opts);
+    opts.forEach((o,i)=>{
+        const btn=$(`<button class="btn btn-outline-light text-dark"></button>`).text(o.label);
+        btn.on('click',()=>openRangeConfirm(i));
+        buttons.append(btn);
+    });
+    container.append('<h5 class="mb-3">请选择时间段</h5>');
+    container.append(buttons);
+}
+
+function openRangeConfirm(idx){
+    const opts = $('#manualSelectArea').data('opts') || [];
+    const opt = opts[idx];
+    if(!opt){return;}
+
+    $('#manualSelectArea').addClass('d-none');
+    $('#confirmTitle').text('确认时间段');
+    $('#confirmDesc').text('已选择时间段如下');
+    $('#dateInput').addClass('d-none');
+    $('#selectedRangeDisplay').removeClass('d-none').text(opt.label);
+    $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
+
+    $('#confirmDateBtn').off('click').on('click',function(){
+        const d = getDateForOption(opt);
+        updateCountForDate(currentCode, d);
+        closeOcrModal();
+    });
+
+    $('#retryOcrBtn').text('重新选择').off('click').on('click',function(){
+        $('#ocrConfirmArea').addClass('d-none');
+        $('#selectedRangeDisplay').addClass('d-none');
+        $('#dateInput').removeClass('d-none');
+        $('#confirmTitle').text('确认日期');
+        $('#confirmDesc').text('识别到日期如下(可修改)');
+        generateManualOptions();
+        $('#manualSelectArea').removeClass('d-none');
+    });
+}
+
+function getDateForOption(opt){
+    if(!opt.start && opt.end){
+        return formatDate(new Date(opt.end.getTime()-86400000));
+    }
+    if(opt.start && !opt.end){
+        return formatDate(new Date(opt.start.getTime()+86400000));
+    }
+    return formatDate(opt.start || new Date());
 }
 
 // ========= 通用工具 =========

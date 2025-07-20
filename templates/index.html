@@ -16,7 +16,7 @@
 </head>
 <body>
     <div class="container my-3">
-        <h1 class="text-center">订单列表</h1>
+        <h1 class="text-center"><span class="lang-zh">订单列表</span><span class="lang-en">Order List</span></h1>
         <table id="orderTable" class="display">
             <thead>
                 <tr>
@@ -31,7 +31,7 @@
         <!-- 在表格下方添加手动添加按钮 -->
         <div class="text-center mt-3">
             <button id="addManualBtn" class="btn btn-outline-primary">
-                <i class="fas fa-plus"></i> 手动添加
+                <i class="fas fa-plus"></i> <span class="lang-zh">手动添加</span><span class="lang-en">Add Manually</span>
             </button>
         </div>
     </div>
@@ -40,15 +40,15 @@
     <div class="bottom-buttons">
         <button id="scanBtn" class="btn btn-primary">
             <i class="fas fa-barcode"></i>
-            <span>扫描</span>
+            <span class="lang-zh">扫描</span><span class="lang-en">Scan</span>
         </button>
         <button id="copyBtn" class="btn btn-secondary">
             <i class="fas fa-copy"></i>
-            <span>复制</span>
+            <span class="lang-zh">复制</span><span class="lang-en">Copy</span>
         </button>
         <button id="exportBtn" class="btn btn-success">
             <i class="fas fa-file-export"></i>
-            <span>导出</span>
+            <span class="lang-zh">导出</span><span class="lang-en">Export</span>
         </button>
     </div>
 
@@ -57,7 +57,7 @@
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">条码扫描</h5>
+                    <h5 class="modal-title"><span class="lang-zh">条码扫描</span><span class="lang-en">Scan Barcode</span></h5>
                     <button type="button" class="btn-close" id="closeScanner" aria-label="关闭"></button>
                 </div>
                 <div class="modal-body p-0 position-relative">
@@ -68,11 +68,11 @@
                     <!-- 数量调整界面 -->
                     <div id="quantityModal" class="quantity-modal d-none">
                         <div class="scanned-info">
-                            <div class="scanned-label">已扫描条码 (可手动修改)</div>
+                            <div class="scanned-label"><span class="lang-zh">已扫描条码 (可手动修改)</span><span class="lang-en">Scanned Code (editable)</span></div>
                             <!-- 允许手动更改条码 -->
                             <div id="scannedCode" class="scanned-code mb-3 fw-bold" contenteditable="true"></div>
                         </div>
-                        <div class="quantity-label">加入Order List的数量</div>
+                        <div class="quantity-label"><span class="lang-zh">加入Order List的数量</span><span class="lang-en">Quantity to add</span></div>
                         <div class="quantity-control">
                             <button id="decreaseQty" class="btn btn-outline-secondary rounded-circle">
                                 <i class="fas fa-minus"></i>
@@ -83,10 +83,10 @@
                             </button>
                         </div>
                         <button id="confirmQty" class="btn btn-primary mt-3 w-100">
-                            确定
+                            <span class="lang-zh">确定</span><span class="lang-en">Confirm</span>
                         </button>
                         <button id="cancelQty" class="btn btn-secondary mt-2 w-100">
-                            取消
+                            <span class="lang-zh">取消</span><span class="lang-en">Cancel</span>
                         </button>
                     </div>
                 </div>
@@ -116,5 +116,7 @@
     <!-- 保留 HTML5QrCode 作为备用 -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <div id="langToggle" class="lang-fab"><i class="fas fa-language"></i></div>
+    <script src="{{ url_for('static', filename='lang.js') }}"></script>
 </body>
 </html>

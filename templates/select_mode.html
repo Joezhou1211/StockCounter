@@ -65,20 +65,24 @@
 </head>
 <body>
     <div class="mode-card animate__animated animate__fadeIn">
-        <h2 style="text-align:center;color:#000;font-weight:700;margin-bottom:1.3rem;">请选择使用模式</h2>
-        <a href="/mode1" class="btn btn-secondary btn-mode"><i class="fas fa-list"></i> 点货模式</a>
-        <a href="/mode2" class="btn btn-dark btn-mode"><i class="fas fa-boxes"></i> 盘点模式</a>
-        <a href="/tutorial" class="btn btn-tutorial btn-mode"><i class="fas fa-question-circle"></i> 教程</a>
+        <h2 style="text-align:center;color:#000;font-weight:700;margin-bottom:1.3rem;">
+            <span class="lang-zh">请选择使用模式</span><span class="lang-en">Choose Mode</span>
+        </h2>
+        <a href="/mode1" class="btn btn-secondary btn-mode"><i class="fas fa-list"></i> <span class="lang-zh">点货模式</span><span class="lang-en">Counting</span></a>
+        <a href="/mode2" class="btn btn-dark btn-mode"><i class="fas fa-boxes"></i> <span class="lang-zh">盘点模式</span><span class="lang-en">Inventory</span></a>
+        <a href="/tutorial" class="btn btn-tutorial btn-mode"><i class="fas fa-question-circle"></i> <span class="lang-zh">教程</span><span class="lang-en">Tutorial</span></a>
     </div>
     <!-- 模式说明 -->
     <div class="mode-desc small px-3">
-        <p class="mt-2">此APP仅支持如手机、平板等带摄像头的设备。</p>
-        <p class="mt-2">如仅需计数，不需要盘日期，可直接在电脑使用扫码枪版本：<a href="https://nullpointers.site:8081" class="link-light text-decoration-underline" target="_blank" style="color: black!important;">https://nullpointers.site:8081</a></p>
+        <p class="mt-2"><span class="lang-zh">此APP仅支持如手机、平板等带摄像头的设备。</span><span class="lang-en">This app works on camera-equipped devices only.</span></p>
+        <p class="mt-2"><span class="lang-zh">如仅需计数，不需要盘日期，可直接在电脑使用扫码枪版本：</span><span class="lang-en">For counting only you can use desktop version:</span><a href="https://nullpointers.site:8081" class="link-light text-decoration-underline" target="_blank" style="color: black!important;">https://nullpointers.site:8081</a></p>
         <p class="mt-2"></p>
-        <p class="mb-1">• 点货模式：此模式用于周一订货。扫描条码并输入数量即可制作点货单，适用于大店在库存不准确的情况下手动制作点货单。</p>
-        <p class="mb-1">• 盘点模式：此模式用于周四盘点（带日期）。可扫描条码统计数量，自动识别 Repair&nbsp;Parts 日期。</p>
-        <p class="mb-1">• 教程：查看详细文字和视频教程</p>
+        <p class="mb-1"><span class="lang-zh">• 点货模式：此模式用于周一订货。扫描条码并输入数量即可制作点货单，适用于大店在库存不准确的情况下手动制作点货单。</span><span class="lang-en">• Counting Mode: for Monday ordering.</span></p>
+        <p class="mb-1"><span class="lang-zh">• 盘点模式：此模式用于周四盘点（带日期）。可扫描条码统计数量，自动识别 Repair&nbsp;Parts 日期。</span><span class="lang-en">• Inventory Mode: for Thursday stock check with dates.</span></p>
+        <p class="mb-1"><span class="lang-zh">• 教程：查看详细文字和视频教程</span><span class="lang-en">• Tutorial: detailed guide</span></p>
 
     </div>
+    <div id="langToggle" class="lang-fab"><i class="fas fa-language"></i></div>
+    <script src="{{ url_for('static', filename='lang.js') }}"></script>
 </body>
-</html> 
+</html>

@@ -574,7 +574,7 @@ h1 {
 
 #ocrScannerBox {
     position: absolute;
-    top: 50%;
+    top: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 900;
@@ -740,6 +740,11 @@ h1 {
 #ocrOverlayText{
     margin-top:0 !important;
     top:0.6rem !important;
+    background: rgba(0,0,0,0.6);
+    padding:4px 10px;
+    border-radius:12px;
+    color:#fff;
+    z-index:1201;
 }
 
 /* 搜索框清除按钮 hover 效果 */
@@ -756,3 +761,22 @@ h1 {
 /* OCR 手电筒按钮 */
 #flashToggleInOcr.btn-success{background-color:#28a745 !important;}
 #flashToggleInOcr.btn-danger{background-color:#dc3545 !important;}
+
+/* 语言切换悬浮球 */
+.lang-fab{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:#4361ee;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.2rem;
+    box-shadow:0 4px 12px rgba(0,0,0,0.25);
+    z-index:1500;
+}
+.lang-fab:hover{background:#3554d1;color:#fff;text-decoration:none;}
