@@ -53,45 +53,46 @@
 </head>
 <body>
 <div class="container my-3">
-    <h2 class="text-center">盘点模式</h2>
+    <h2 class="text-center"><span class="lang-zh">盘点模式</span><span class="lang-en">Inventory Mode</span></h2>
 
     <!-- 配置区域 -->
     <div id="setupSection" class="config-section">
         <div class="mb-3">
-            <label for="fileUpload" class="form-label fw-bold">1. 上传商品清单 (Excel / CSV)</label>
+            <label for="fileUpload" class="form-label fw-bold"><span class="lang-zh">1. 上传商品清单 (Excel / CSV)</span><span class="lang-en">1. Upload Product List (Excel/CSV)</span></label>
             <input class="form-control" type="file" id="fileUpload" accept=".xlsx,.xls,.csv">
+            <p class="small text-muted mt-1"><span class="lang-zh">支持的日期格式：11 DEC 2024，11/12/2024，11.12.2014。其他格式请手动选择日期。</span><span class="lang-en">Supported date formats: 11 DEC 2024, 11/12/2024, 11.12.2014. Other formats please choose manually.</span></p>
         </div>
 
         <div class="mb-3">
-            <label class="form-label fw-bold">2. 设定日期范围 (可添加多个，不重叠)</label>
+            <label class="form-label fw-bold"><span class="lang-zh">2. 设定日期范围 (可添加多个，不重叠)</span><span class="lang-en">2. Set Date Ranges (no overlap)</span></label>
             <div class="row g-2 align-items-end">
                 <div class="col">
-                    <label class="form-label">开始日期 (可留空)</label>
+                    <label class="form-label"><span class="lang-zh">开始日期 (可留空)</span><span class="lang-en">Start Date (optional)</span></label>
                     <input type="date" id="startDate" class="form-control">
                 </div>
                 <div class="col">
-                    <label class="form-label">结束日期 (可留空)</label>
+                    <label class="form-label"><span class="lang-zh">结束日期 (可留空)</span><span class="lang-en">End Date (optional)</span></label>
                     <input type="date" id="endDate" class="form-control">
                 </div>
                 <div class="col-auto">
-                    <button id="addDateRangeBtn" class="btn btn-outline-primary"> 确认添加</button>
+                    <button id="addDateRangeBtn" class="btn btn-outline-primary"><span class="lang-zh">确认添加</span><span class="lang-en">Add</span></button>
                 </div>
             </div>
             <div id="dateRangeList" class="mt-2"></div>
 
             <!-- 手电筒开关 -->
             <div class="mt-3 d-flex align-items-center">
-                <span class="me-2">启用手电筒</span>
+                <span class="me-2"><span class="lang-zh">启用手电筒</span><span class="lang-en">Flashlight</span></span>
                 <button id="flashToggle" class="btn btn-sm btn-danger d-flex align-items-center">
                     <i class="fas fa-lightbulb me-1"></i>
-                    <span>关</span>
+                    <span class="lang-zh">关</span><span class="lang-en">Off</span>
                 </button>
             </div>
 
             <!-- 深色模式已移除 -->
         </div>
 
-        <button id="finishSetupBtn" class="btn btn-success w-100">完成配置，开始盘点</button>
+        <button id="finishSetupBtn" class="btn btn-success w-100"><span class="lang-zh">完成配置，开始盘点</span><span class="lang-en">Finish and Start</span></button>
     </div>
 
     <!-- 数据表区域 (默认隐藏) -->
@@ -129,9 +130,8 @@
 
 <!-- 底部按钮 -->
 <div id="actionButtons" class="bottom-buttons d-none">
-    <button id="scanBtn" class="btn btn-primary"><i class="fas fa-barcode"></i> 扫描</button>
-    <button id="copyBtn" class="btn btn-secondary"><i class="fas fa-copy"></i> 复制</button>
-    <button id="exportBtn" class="btn btn-success"><i class="fas fa-file-export"></i> 导出</button>
+    <button id="exportBtn" class="btn btn-success btn-sm"><i class="fas fa-file-export"></i> <span class="lang-zh">导出</span><span class="lang-en">Export</span></button>
+    <button id="scanBtn" class="btn btn-primary btn-sm"><i class="fas fa-barcode"></i> <span class="lang-zh">扫描</span><span class="lang-en">Scan</span></button>
 </div>
 
 <!-- 扫描模态框 -->
@@ -139,7 +139,7 @@
     <div class="modal-dialog modal-fullscreen">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">条码识别中</h5>
+                <h5 class="modal-title"><span class="lang-zh">条码识别中</span><span class="lang-en">Scanning Barcode</span></h5>
                 <button type="button" class="btn-close" id="closeScanner" aria-label="关闭"></button>
             </div>
             <div class="modal-body p-0 position-relative">
@@ -151,17 +151,17 @@
                 <!-- Loading Indicator -->
                 <div id="loadingIndicator" class="loading-indicator d-none">
                     <div class="spinner-border text-light" role="status"></div>
-                    <p>正在启动摄像头...</p>
+                    <p><span class="lang-zh">正在启动摄像头...</span><span class="lang-en">Starting camera...</span></p>
                 </div>
                 <!-- Barcode Confirmation Dialog (re-uses quantity-modal style) -->
                 <div id="barcodeConfirmContainer" class="quantity-modal d-none">
-                    <h5 class="mb-3">确认条码</h5>
-                    <p class="text-muted small mb-2">已扫描条码如下，可修改</p>
+                    <h5 class="mb-3"><span class="lang-zh">确认条码</span><span class="lang-en">Confirm Barcode</span></h5>
+                    <p class="text-muted small mb-2"><span class="lang-zh">已扫描条码如下，可修改</span><span class="lang-en">Scanned code below, editable</span></p>
                     <input type="text" id="barcodeConfirmInput" class="form-control text-center mb-3"/>
                     <div id="barcodeStatus" class="small mb-3"></div>
                     <div class="d-grid gap-2">
-                       <button id="confirmBarcodeBtn" class="btn btn-success">确认并开始识别日期</button>
-                       <button id="cancelBarcodeBtn" class="btn btn-secondary">重新识别</button>
+                       <button id="confirmBarcodeBtn" class="btn btn-success"><span class="lang-zh">确认并开始识别日期</span><span class="lang-en">Confirm and scan date</span></button>
+                       <button id="cancelBarcodeBtn" class="btn btn-secondary"><span class="lang-zh">重新识别</span><span class="lang-en">Rescan</span></button>
                     </div>
                </div>
             </div>
@@ -175,8 +175,8 @@
         <div class="modal-content bg-dark text-white">
             <div id="ocrScannerBox"></div>
             <div class="modal-header border-0">
-                <h5 class="modal-title">日期识别中</h5>
-                <button id="manualDateBtn" class="btn btn-light btn-sm d-flex align-items-center me-2"><i class="fas fa-keyboard me-1"></i> 手动输入日期</button>
+                <h5 class="modal-title"><span class="lang-zh">日期识别中</span><span class="lang-en">Detecting Date</span></h5>
+                <button id="manualDateBtn" class="btn btn-light btn-sm d-flex align-items-center me-2"><i class="fas fa-keyboard me-1"></i> <span class="lang-zh">手动选择日期</span><span class="lang-en">Select Date Manually</span></button>
                 <button type="button" class="btn-close btn-close-white" id="closeOcr" aria-label="关闭"></button>
             </div>
             <div class="modal-body d-flex flex-column justify-content-center align-items-center position-relative">
@@ -185,14 +185,16 @@
                 <button id="flashToggleInOcr" class="btn btn-danger position-absolute start-50 translate-middle-x" style="bottom: 12%; z-index: 1101; width: 48px; height:48px; border-radius:50%; display:none;">
                     <i class="fas fa-lightbulb"></i>
                 </button>
-                <div id="ocrOverlayText" class="position-absolute top-0 start-50 translate-middle-x mt-3">正在识别日期，请移动镜头对准日期...</div>
+                <div id="ocrOverlayText" class="position-absolute top-0 start-50 translate-middle-x mt-3"><span class="lang-zh">正在识别日期，请移动镜头对准日期...</span><span class="lang-en">Detecting date, please align the camera...</span></div>
+                <div id="manualSelectArea" class="d-none mt-4 text-center"></div>
                 <div class="mt-4 d-none" id="ocrConfirmArea">
-                    <h5 class="mb-3">确认日期</h5>  
-                    <p class="text-muted small mb-2">识别到日期如下(可修改)</p>
+                    <h5 class="mb-3" id="confirmTitle"><span class="lang-zh">确认日期</span><span class="lang-en">Confirm Date</span></h5>
+                    <p class="text-muted small mb-2" id="confirmDesc"><span class="lang-zh">识别到日期如下(可修改)</span><span class="lang-en">Recognized date below (editable)</span></p>
                     <input type="date" id="dateInput" class="form-control text-center mb-2"/>
+                    <div id="selectedRangeDisplay" class="mb-2 d-none"></div>
                     <div class="d-grid gap-2">
-                        <button id="confirmDateBtn" class="btn btn-success">确认</button>
-                        <button id="retryOcrBtn" class="btn btn-secondary">重新识别</button>
+                        <button id="confirmDateBtn" class="btn btn-success"><span class="lang-zh">确认</span><span class="lang-en">Confirm</span></button>
+                        <button id="retryOcrBtn" class="btn btn-secondary"><span class="lang-zh">重新识别</span><span class="lang-en">Retry</span></button>
                     </div>
                 </div>
                 <h4 id="ocrResult" class="mt-3"></h4>
@@ -203,6 +205,7 @@
 
 <!-- Toast -->
 <div id="toastMessage" class="toast-message d-none"></div>
-
+<div id="langToggle" class="lang-fab"><i class="fas fa-language"></i></div>
+<script src="{{ url_for('static', filename='lang.js') }}"></script>
 </body>
-</html> 
+</html>
