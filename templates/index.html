@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <!-- 禁止双指放大和双击放大，max-scale=1.0 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>点货系统</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+    <!-- 自定义样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container my-3">
+        <h1 class="text-center">订单列表</h1>
+        <table id="orderTable" class="display">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 初始可为空 -->
+            </tbody>
+        </table>
+        <!-- 在表格下方添加手动添加按钮 -->
+        <div class="text-center mt-3">
+            <button id="addManualBtn" class="btn btn-outline-primary">
+                <i class="fas fa-plus"></i> 手动添加
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部按钮 -->
+    <div class="bottom-buttons">
+        <button id="scanBtn" class="btn btn-primary">
+            <i class="fas fa-barcode"></i>
+            <span>扫描</span>
+        </button>
+        <button id="copyBtn" class="btn btn-secondary">
+            <i class="fas fa-copy"></i>
+            <span>复制</span>
+        </button>
+        <button id="exportBtn" class="btn btn-success">
+            <i class="fas fa-file-export"></i>
+            <span>导出</span>
+        </button>
+    </div>
+
+    <!-- 扫描模态框 -->
+    <div id="scannerModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">条码扫描</h5>
+                    <button type="button" class="btn-close" id="closeScanner" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body p-0 position-relative">
+                    <div id="scanner-container">
+                        <div id="interactive" class="viewport"></div>
+                        <!-- 完全移除自定义扫描框，只使用库自带的qr-shaded-region -->
+                    </div>
+                    <!-- 数量调整界面 -->
+                    <div id="quantityModal" class="quantity-modal d-none">
+                        <div class="scanned-info">
+                            <div class="scanned-label">已扫描条码 (可手动修改)</div>
+                            <!-- 允许手动更改条码 -->
+                            <div id="scannedCode" class="scanned-code mb-3 fw-bold" contenteditable="true"></div>
+                        </div>
+                        <div class="quantity-label">加入Order List的数量</div>
+                        <div class="quantity-control">
+                            <button id="decreaseQty" class="btn btn-outline-secondary rounded-circle">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span id="currentQty" class="qty-display">1</span>
+                            <button id="increaseQty" class="btn btn-outline-secondary rounded-circle">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                        </div>
+                        <button id="confirmQty" class="btn btn-primary mt-3 w-100">
+                            确定
+                        </button>
+                        <button id="cancelQty" class="btn btn-secondary mt-2 w-100">
+                            取消
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 消息，移除动画以减轻渲染负担 -->
+    <div id="toastMessage" class="toast-message d-none">
+        <i class="fas fa-check-circle"></i> 添加成功
+    </div>
+
+    <!-- 加载指示器 -->
+    <div id="loadingIndicator" class="loading-indicator d-none">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">加载中...</span>
+        </div>
+        <p>正在启动摄像头...</p>
+    </div>
+
+    <!-- JS 引入 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.6/xlsx.full.min.js"></script>
+    <!-- 保留 HTML5QrCode 作为备用 -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

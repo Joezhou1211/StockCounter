@@ -1,0 +1,758 @@
+:root {
+    --primary-color: #4361ee;
+    --secondary-color: #3f37c9;
+    --success-color: #4cc9f0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --border-radius: 12px;
+    --box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    margin: 0;
+    padding-bottom: 90px;
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    line-height: 1.6;
+    max-width: 100vw;
+    max-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-bottom: 200px;
+}
+
+.container {
+    margin: 15px auto;
+    max-width: 95%;
+    background-color: #fff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 18px;
+}
+
+.bottom-buttons {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-around;
+    padding: 15px 12px;
+    background-color: #fff;
+    box-shadow: 0 -5px 25px rgba(0,0,0,0.08);
+    z-index: 1000;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.bottom-buttons button {
+    flex: 1;
+    margin: 0 8px;
+    border-radius: 12px;
+    padding: 14px 0;
+    font-weight: 600;
+    transition: all 0.3s;
+    border: none;
+    font-size: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.bottom-buttons button i {
+    font-size: 1.3rem;
+    margin-bottom: 3px;
+}
+
+.bottom-buttons button:active {
+    transform: scale(0.96);
+}
+
+h1 {
+    font-size: 1.7rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* 表格样式 */
+#orderTable {
+    width: 100% !important;
+    table-layout: fixed; /* 启用固定布局 */
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    margin-top: 15px;
+}
+
+#orderTable thead th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+    padding: 14px 15px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+#orderTable thead th:first-child,
+#orderTable thead th:last-child,
+#orderTable td:first-child,
+#orderTable td:last-child{
+    width:50% !important;
+}
+
+#orderTable td {
+    padding: 14px 15px;
+    border-bottom: 1px solid #e9ecef;
+    transition: all 0.2s;
+}
+
+#orderTable th, #orderTable td {
+    white-space: normal;
+    word-break: break-word;
+}
+
+#orderTable tr:last-child td {
+    border-bottom: none;
+}
+
+#orderTable tr:nth-child(even) {
+    background-color: rgba(0,0,0,0.02);
+}
+
+#orderTable td[contenteditable="true"]:hover {
+    background-color: rgba(67, 97, 238, 0.05);
+}
+
+#orderTable td[contenteditable="true"]:focus {
+    background-color: rgba(67, 97, 238, 0.1);
+    outline: 2px solid var(--primary-color);
+    outline-offset: -2px;
+}
+
+/* Toast消息 */
+.toast-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--success-color);
+    color: #fff;
+    padding: 12px 25px;
+    border-radius: 50px;
+    z-index: 1100;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 25px rgba(76, 201, 240, 0.3);
+}
+
+/* 扫描模态框样式 */
+.modal-fullscreen .modal-content {
+    height: calc(100vh - 200px);
+    border: none;
+    border-radius: 0;
+    background-color: #000;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-header {
+    background-color: rgba(0,0,0,0.7);
+    border-bottom: none;
+    padding: 15px;
+    height: 60px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+}
+
+.modal-header .modal-title {
+    color: white;
+    font-weight: 600;
+}
+
+.btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.modal-body {
+    padding: 0 !important;
+    margin-top: 60px;
+    height: calc(100% - 60px);
+    overflow: hidden;
+}
+
+#scanner-container {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 260px - 60px);
+    background-color: #000;
+    overflow: hidden;
+}
+
+.viewport {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.viewport > video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 数量调整界面 */
+.quantity-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255,255,255,0.98);
+    padding: 25px;
+    border-radius: 20px;
+    width: 85%;
+    max-width: 350px;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+    z-index: 1100;
+}
+
+.scanned-info {
+    background-color: rgba(67, 97, 238, 0.1);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.scanned-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 8px;
+    text-align: left;
+}
+
+.scanned-code {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    word-break: break-all;
+    text-align: left;
+}
+
+.quantity-label {
+    font-size: 1rem;
+    color: #495057;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+.quantity-control {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+}
+
+.qty-display {
+    font-size: 2.5rem;
+    font-weight: 700;
+    width: 80px;
+    text-align: center;
+    color: var(--primary-color);
+}
+
+#increaseQty, #decreaseQty {
+    width: 55px;
+    height: 55px;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background-color: #f1f3f5;
+    color: var(--dark-color);
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+#increaseQty:active, #decreaseQty:active {
+    transform: scale(0.92);
+    background-color: #e9ecef;
+}
+
+#confirmQty {
+    padding: 14px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    margin-top: 25px;
+    background-color: var(--primary-color);
+    border: none;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
+    transition: all 0.3s;
+}
+
+#confirmQty:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(67, 97, 238, 0.3);
+}
+
+/* 加载指示器 */
+.loading-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.loading-indicator .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* 扫描区域样式 */
+.qr-shaded-region {
+    border: 3px solid rgba(255,255,255,0.9) !important;
+    border-radius: 15px !important;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.7) !important;
+}
+
+.qr-shaded-region.success {
+    border-color: #4cc9f0 !important;
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+        margin: 10px auto;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+    
+    #orderTable thead th {
+        padding: 12px;
+        font-size: 0.8rem;
+    }
+    
+    #orderTable td {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+    
+    .bottom-buttons {
+        padding: 12px 10px;
+    }
+    
+    .bottom-buttons button {
+        font-size: 0.9rem;
+    }
+    
+    .quantity-modal {
+        width: 90%;
+        padding: 20px;
+    }
+}
+
+/* iPhone X 及以上设备优化 */
+@media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) {
+    .bottom-buttons {
+        padding-bottom: 25px; /* 适应底部安全区域 */
+    }
+}
+
+/* Safari特定优化 */
+@supports (-webkit-touch-callout: none) {
+    .modal-fullscreen .modal-content {
+        height: 100%;
+        min-height: 100vh;
+    }
+    
+    #scanner-container {
+        height: calc(100vh - 56px);
+    }
+}
+
+/* 为原生扫描器添加样式 */
+#interactive video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 添加扫描区域指示 */
+.scan-region-highlight {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250px;
+    height: 100px;
+    transform: translate(-50%, -50%);
+    border: 3px solid rgba(255,255,255,0.9);
+    border-radius: 15px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
+    z-index: 10;
+}
+
+.scan-region-highlight.success {
+    border-color: #4cc9f0;
+    transition: border-color 0.3s ease;
+}
+
+/* iOS 特定优化 */
+@supports (-webkit-touch-callout: none) {
+    #interactive video {
+        object-position: center;
+    }
+    
+    /* 增加 iOS 上的对比度 */
+    .modal-content {
+        background-color: #000 !important;
+    }
+    
+    /* 优化 iOS 上的扫描区域 */
+    .scan-region-highlight {
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.8);
+    }
+}
+
+/* 扫描框样式 */
+.scanner-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 250px;
+    height: 100px;
+    transform: translate(-50%, -50%);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+/* 扫描线动画 */
+.scan-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, 
+        rgba(76, 201, 240, 0), 
+        rgba(76, 201, 240, 0.8) 50%, 
+        rgba(76, 201, 240, 0));
+    top: 0;
+    box-shadow: 0 0 8px 1px rgba(76, 201, 240, 0.5);
+    animation: scanAnimation 2s ease-in-out infinite;
+}
+
+@keyframes scanAnimation {
+    0% {
+        top: 5%;
+    }
+    50% {
+        top: 95%;
+    }
+    100% {
+        top: 5%;
+    }
+}
+
+/* 四个角样式 */
+.corner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-color: #4cc9f0;
+    border-style: solid;
+    border-width: 0;
+}
+
+.corner.top-left {
+    top: 0;
+    left: 0;
+    border-top-width: 3px;
+    border-left-width: 3px;
+    border-top-left-radius: 8px;
+}
+
+.corner.top-right {
+    top: 0;
+    right: 0;
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-top-right-radius: 8px;
+}
+
+.corner.bottom-left {
+    bottom: 0;
+    left: 0;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
+    border-bottom-left-radius: 8px;
+}
+
+.corner.bottom-right {
+    bottom: 0;
+    right: 0;
+    border-bottom-width: 3px;
+    border-right-width: 3px;
+    border-bottom-right-radius: 8px;
+}
+
+/* 扫描成功效果 */
+.scanner-box.success {
+    border-color: #4cc9f0;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6), 
+                inset 0 0 20px rgba(76, 201, 240, 0.5);
+}
+
+/* 在iOS设备上的特殊优化 */
+@supports (-webkit-touch-callout: none) {
+    .scanner-box {
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+    }
+    
+    .scan-line {
+        background: linear-gradient(to right, 
+            rgba(76, 201, 240, 0), 
+            rgba(76, 201, 240, 1) 50%, 
+            rgba(76, 201, 240, 0));
+        box-shadow: 0 0 12px 2px rgba(76, 201, 240, 0.7);
+    }
+}
+
+/* 横屏模式优化 */
+@media (orientation: landscape) {
+    .scanner-box {
+        width: 280px;
+        height: 100px;
+    }
+}
+
+/* 小屏幕设备优化 */
+@media (max-width: 375px) {
+    .scanner-box {
+        width: 220px;
+        height: 90px;
+    }
+    
+    .corner {
+        width: 15px;
+        height: 15px;
+    }
+}
+
+#ocrScannerBox {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 900;
+    width: 250px;
+    height: 100px;
+    border: 3px solid rgba(255,255,255,0.9);
+    border-radius: 15px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.7);
+    pointer-events: none;
+}
+
+#ocrResult {
+    position: absolute;
+    bottom: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 500px;
+    background-color: rgba(0,0,0,0.6);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    text-align: center;
+    z-index: 1201;
+    max-height: 100px;
+    overflow-y: auto;
+    font-size: 1rem;
+    pointer-events: none;
+    line-height: 1.4;
+}
+
+.mb-3{
+    color: black;
+}
+
+/* === 解决统计面板在移动端过宽的样式 === */
+#tableSection,
+.dataTables_wrapper {
+    /* 允许横向滚动，保证背景始终覆盖表格 */
+    overflow-x: auto;
+}
+
+/* 统计面板表格的通用最小宽度，防止列被过度压缩 */
+#inventoryTable {
+    width: 100%;
+    table-layout: fixed;
+    min-width: 600px; /* 若列很多可自行横向滚动 */
+}
+
+#inventoryTable th,
+#inventoryTable td {
+    white-space: normal;
+    word-break: break-word;
+    padding: 14px 10px;
+}
+
+/* 表头更小字体并减小内边距 */
+#inventoryTable thead th {
+    font-size: 0.9rem;
+    padding: 10px 8px;
+    white-space: nowrap;
+}
+
+/* 移动端再缩小 */
+@media (max-width: 768px) {
+    #inventoryTable thead th {
+        font-size: 0.75rem;
+        padding: 6px 6px;
+    }
+    #inventoryTable {
+        min-width: 480px;
+    }
+}
+
+/* --- 滑动提示 --- */
+.scroll-hint{
+    position:absolute;
+    bottom:6px;
+    left:50%;
+    transform:translateX(-50%);
+    background:rgba(0,0,0,0.6);
+    color:#fff;
+    font-size:0.75rem;
+    padding:4px 10px;
+    border-radius:12px;
+    pointer-events:none;
+    white-space:nowrap;
+    z-index:2000;
+    animation:bounceX 1s ease-in-out infinite;
+}
+
+@keyframes bounceX{
+    0%,100%{transform:translate(-50%,0);}
+    50%{transform:translate(-46%,0);}
+}
+
+/* orderTable 表头字体与间距调整 */
+#orderTable thead th {
+    font-size: 0.9rem;
+    padding: 10px 8px;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    #orderTable thead th {
+        font-size: 0.75rem;
+        padding: 6px 6px;
+    }
+}
+
+.btn-dark{
+    background-color:#4a4a4a !important;
+    border:none !important;
+}
+
+/* mode2 盘点表格字体更小 */
+#inventoryTable thead th{
+    font-size:0.8rem;
+    padding:6px 6px;
+}
+#inventoryTable td{
+    font-size:0.85rem;
+    padding:6px 6px;
+}
+/* 日期列更小 */
+.date-col{
+    font-size:0.75rem !important;
+    white-space:nowrap;
+}
+/* Count列窄 */
+.count-col{
+    width:70px !important;
+}
+/* DataTables分页缩小 */
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+    padding:2px 6px !important;
+    font-size:0.75rem !important;
+    margin:0 2px !important;
+}
+.dataTables_wrapper .dataTables_info{
+    font-size:0.75rem;
+}
+
+.count-col, .date-col, #inventoryTable td.text-center{
+    text-align:center !important;
+}
+
+#inventoryTable thead th{
+    line-height:1.2;
+}
+
+/* 手动输入日期按钮 */
+#manualDateBtn{
+    font-size:0.8rem;
+    padding:4px 10px;
+    margin: 10px;
+}
+@media (max-width: 768px){
+    #manualDateBtn{font-size:0.75rem; padding:3px 8px;}
+}
+
+/* OCR 顶部提示文字向上贴近顶部 */
+#ocrOverlayText{
+    margin-top:0 !important;
+    top:0.6rem !important;
+}
+
+/* 搜索框清除按钮 hover 效果 */
+#codeSearchClear:hover{
+    color:#dc3545;
+}
+
+/* 夜间模式文字样式已移除 */
+
+/* 扫描中手电筒按钮 */
+#flashToggleDuringScan.btn-success{background-color:#28a745 !important;}
+#flashToggleDuringScan.btn-danger{background-color:#dc3545 !important;}
+
+/* OCR 手电筒按钮 */
+#flashToggleInOcr.btn-success{background-color:#28a745 !important;}
+#flashToggleInOcr.btn-danger{background-color:#dc3545 !important;}

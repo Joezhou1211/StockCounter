@@ -1,0 +1,789 @@
+// ===== 盘点模式脚本 =====
+let rawRows = [];              // 上传文件解析出的原始数据（对象数组）
+let dateRanges = [];           // {label,start,end,hidden}
+let inventoryTable = null;     // DataTable 实例
+let html5QrCode = null;        // 扫描器实例
+let scanning = false; 
+let ocrStream = null;
+let ocrInterval = null;
+let currentCode = null;
+let ocrWorker = null; 
+let ocrWorkerReady  = null; 
+let scanningFlag = false; 
+let flashlightEnabled = false; // 手电筒状态
+
+
+// ------------ 文件上传与表格初始化 ------------
+$(document).ready(function(){
+    // 处理文件上传
+    $('#fileUpload').on('change', function(e){
+        const file = e.target.files[0];
+        if(!file){return;}
+        const reader = new FileReader();
+        reader.onload = function(evt){
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
+            const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
+            parseSheet(json);
+            showToast('文件读取成功');
+        };
+        reader.readAsArrayBuffer(file);
+    });
+
+    // 添加日期范围
+    $('#addDateRangeBtn').on('click', function(){
+        const s = $('#startDate').val();
+        const e = $('#endDate').val();
+        if(!s && !e){
+            alert('请至少设置开始或结束日期');
+            return;
+        }
+        const start = s ? new Date(s) : null;
+        const end   = e ? new Date(e) : null;
+        if(start && end && start > end){
+            alert('开始日期不能晚于结束日期');
+            return;
+        }
+        // 检查重叠
+        if(isOverlap(start,end)){
+            alert('日期范围与现有范围重叠');
+            return;
+        }
+        const label = buildLabel(start,end);
+        dateRanges.push({label,start,end,hidden:false});
+        renderDateRangeList();
+        $('#startDate').val('');
+        $('#endDate').val('');
+    });
+
+    // 完成配置
+    $('#finishSetupBtn').on('click', function(){
+        if(rawRows.length === 0){
+            alert('请先上传商品清单');
+            return;
+        }
+        if(dateRanges.length === 0){
+            alert('请至少添加一个日期范围');
+            return;
+        }
+        // 构建表头
+        buildTable();
+        // 切换界面
+        $('#setupSection').addClass('d-none');
+        $('#tableSection').removeClass('d-none');
+        $('#actionButtons').removeClass('d-none');
+
+        // 调整列宽，保证表头与数据对齐
+        if(inventoryTable){
+            inventoryTable.columns.adjust().draw(false);
+        }
+
+        // 显示左右滑动提示（3秒后自动消失，仅首次创建）
+        if(!$('#scrollHint').length){
+            const hint=$('<div id="scrollHint" class="scroll-hint" style="bottom:30%!important;">← 左右滑动查看更多列 →</div>');
+            $('#tableSection').css('position','relative').append(hint);
+            setTimeout(()=>hint.fadeOut(800,()=>hint.remove()), 4000);
+        }
+    });
+
+    // 底部按钮事件
+    $('#scanBtn').on('click', openScanner);
+    $('#closeScanner').on('click', closeScannerModal);
+    $('#copyBtn').on('click', copyTable);
+    $('#exportBtn').on('click', exportTable);
+
+    // 新增：条码确认弹窗的按钮事件
+    $('#confirmBarcodeBtn').on('click', function(){
+        const code = $('#barcodeConfirmInput').val().trim();
+        if (!code) {
+            showToast('条码不能为空');
+            return;
+        }
+        updateCountForCode(code);
+        currentCode = code;
+
+        // 隐藏确认框，关闭扫描器，打开OCR
+        $('#barcodeConfirmContainer').addClass('d-none');
+        closeScannerModal(); // 这会停止摄像头
+        openOcrModal();
+    });
+
+    $('#cancelBarcodeBtn').on('click', function(){
+        $('#barcodeConfirmContainer').addClass('d-none');
+        if(html5QrCode) {
+            try {
+                html5QrCode.resume();
+            } catch (e) {
+                console.error("恢复扫描失败", e);
+                // 如果恢复失败，可能需要重启扫描
+                closeScannerModal();
+            }
+        }
+    });
+
+    // 关闭 OCR 模态按钮
+    $('#closeOcr').on('click', function(){
+        const msg = currentCode ? `当前商品 ${currentCode} 已添加，日期将会留空。确认关闭？` : '确认关闭日期识别？';
+        if(confirm(msg)){
+            closeOcrModal();
+        }
+    });
+
+    // 刷新 / 关闭提示
+    window.onbeforeunload = function(){
+        return '确定要刷新或关闭吗？未保存的数据可能会丢失。';
+    };
+
+    // 手电筒开关
+    function updateFlashBtnUI(){
+        if(flashlightEnabled){
+            $('#flashToggle').removeClass('btn-danger').addClass('btn-success').find('span').text('开');
+            $('#flashToggleDuringScan').removeClass('btn-danger').addClass('btn-success');
+            $('#flashToggleInOcr').removeClass('btn-danger').addClass('btn-success');
+        }else{
+            $('#flashToggle').removeClass('btn-success').addClass('btn-danger').find('span').text('关');
+            $('#flashToggleDuringScan').removeClass('btn-success').addClass('btn-danger');
+            $('#flashToggleInOcr').removeClass('btn-success').addClass('btn-danger');
+        }
+    }
+
+    $('#flashToggle').on('click',function(){
+        flashlightEnabled = !flashlightEnabled;
+        updateFlashBtnUI();
+    });
+
+    $('#flashToggleDuringScan, #flashToggleInOcr').on('click',function(){
+        flashlightEnabled = !flashlightEnabled;
+        applyTorchState();
+        updateFlashBtnUI();
+    });
+
+    // 初始化按钮状态
+    updateFlashBtnUI();
+});
+
+function parseSheet(rows){
+    if(rows.length === 0){return;}
+    const header = rows[0];
+    const colIndex = {code:-1,name:-1,count:-1};
+    header.forEach((h,idx)=>{
+        const key = (h||'').toString().toLowerCase();
+        if(['code'].includes(key)){colIndex.code=idx;}
+        if(['product name','name','product','products'].includes(key)){colIndex.name=idx;}
+        if(['count'].includes(key)){colIndex.count=idx;}
+    });
+    if(colIndex.code === -1){
+        alert('未检测到 Code 列');
+        return;
+    }
+    // 解析行
+    rawRows = rows.slice(1).map(r=>{
+        return {
+            code: (r[colIndex.code]||'').toString().trim(),
+            name: colIndex.name!==-1 ? (r[colIndex.name]||'').toString().trim() : '',
+            count: colIndex.count!==-1 ? parseInt(r[colIndex.count]||0) : 0
+        };
+    }).filter(r=>r.code);
+}
+
+function buildLabel(start,end){
+    // 返回带 <br> 的多行 HTML 以便表头上下居中显示
+    if(start && end){
+        return `<span>${formatDate(start)}</span><br><span class="text-muted small">To</span><br><span>${formatDate(end)}</span>`;
+    }else if(!start && end){
+        return `<span>Before</span><br><span>${formatDate(end)}</span>`;
+    }else if(start && !end){
+        return `<span>After</span><br><span>${formatDate(start)}</span>`;
+    }
+    return 'Unknown';
+}
+
+function renderDateRangeList(){
+    const container = $('#dateRangeList');
+    container.empty();
+    dateRanges.forEach((d,idx)=>{
+        const item = $(`<span class="badge bg-primary me-1 mb-1">${d.label} <i data-idx="${idx}" class="fas fa-times ms-1 remove-date" style="cursor:pointer"></i></span>`);
+        container.append(item);
+    });
+    // 绑定删除
+    $('.remove-date').off('click').on('click', function(){
+        const idx = $(this).data('idx');
+        dateRanges.splice(idx,1);
+        renderDateRangeList();
+    });
+}
+
+function isOverlap(s1,e1){
+    for(const r of dateRanges){
+        const s2 = r.start, e2 = r.end;
+        // 计算交集
+        if( ( !e1 || !s2 || e1 >= s2 ) && ( !e2 || !s1 || e2 >= s1 ) ){
+            // 判断具体重叠条件
+            if( ( !s1 || !e2 || s1 <= e2 ) && ( !e1 || !s2 || s2 <= e1 ) ){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function buildTable(){
+    // 不再按日期排序，保持用户添加的先后顺序
+
+    // 构建列
+    const columns = [
+        {title:'Code'},
+        {title:'Count', className:'count-col'}
+    ];
+    dateRanges.forEach(r=>{
+        if(!r.hidden){
+            columns.push({title:r.label, className:'date-col'});
+        }
+    });
+
+    // 生成数据
+    const data = rawRows.map(row=>{
+        const arr = [row.code, row.count.toString()];
+        dateRanges.forEach(r=>{ if(!r.hidden){ arr.push('0'); }});
+        return arr;
+    });
+
+    inventoryTable = $('#inventoryTable').DataTable({
+        paging:true,
+        pageLength:5,
+        lengthChange:false,
+        searching:true,
+        info:false,
+        ordering:false,
+        /* 启用横向滚动，防止列数过多时表格撑破容器 */
+        scrollX:true,
+        autoWidth:true,
+        data:data,
+        columns:columns,
+        createdRow:function(row,data,dataIndex){
+            $('td',row).attr('contenteditable',true);
+            // 让除 Code 以外的列居中
+            $('td:gt(0)',row).addClass('text-center');
+        }
+    });
+
+    // 隐藏自带 filter
+    $('#inventoryTable_filter').hide();
+
+    // 初始化 entriesSelect 与 page length 同步
+    $('#entriesSelect').val('5');
+    $('#entriesSelect').off('change').on('change',function(){
+        const v=parseInt($(this).val());
+        inventoryTable.page.len(v).draw();
+    });
+
+    // 搜索框输入联动
+    $('#codeSearch').off('input').on('input',function(){
+        const val = this.value;
+        $('#codeSearchClear').toggle(val.length>0);
+        inventoryTable.column(0).search(val,false,false).draw();
+    });
+
+    // 清除搜索内容
+    $('#codeSearchClear').off('click').on('click',function(){
+        $('#codeSearch').val('');
+        $(this).hide();
+        inventoryTable.column(0).search('',false,false).draw();
+    });
+
+    // 同步用户编辑
+    $('#inventoryTable').on('blur','td[contenteditable="true"]',function(){
+        const cell = inventoryTable.cell(this);
+        cell.data($(this).text().trim()).draw(false);
+    });
+
+    // 手动添加按钮
+    $('#addManualBtn').off('click').on('click', function(){
+        // 构造空行：Code 默认"新数据"，Count 0，其余列 0
+        const newRow = ['新数据','0'];
+        dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push('0'); }});
+        inventoryTable.row.add(newRow).draw(false);
+        inventoryTable.page('last').draw('page');
+    });
+}
+
+// ------------ 扫描功能 ------------
+function openScanner(){
+    $('#scannerModal').modal('show');
+    startScanner();
+    // 显示扫描手电筒按钮
+    $('#flashToggleDuringScan').show();
+    $('#flashToggleInOcr').hide();
+}
+
+function closeScannerModal(){
+    $('#scannerModal').modal('hide');
+    stopScanner();
+    $('#flashToggleDuringScan').hide();
+}
+
+function startScanner(){
+    if(scanning){return;}
+    scanning = true;
+    $('#loadingIndicator').removeClass('d-none');
+
+    html5QrCode = new Html5Qrcode(/* element id */ 'scanner-container');
+    const config = getOptimalScanConfig();
+    html5QrCode.start({ facingMode: 'environment' }, config, handleBarcode, handleScanError)
+        .then(()=>{
+            $('#loadingIndicator').addClass('d-none');
+            // 尝试开启闪光灯
+            applyTorchState();
+        })
+        .catch(err=>{ console.log(err); showToast('摄像头启动失败'); scanning=false; });
+}
+
+function stopScanner(){
+    if(!scanning){return;}
+    scanning = false;
+    if(html5QrCode){
+        html5QrCode.stop().then(()=>{ html5QrCode.clear(); html5QrCode=null; });
+    }
+}
+
+let lastCode=''; let lastTime=0;
+function handleBarcode(decodedText,decodedResult){
+    const now = Date.now();
+    if(decodedText === lastCode && now-lastTime < 300){return;} 
+    lastCode = decodedText; lastTime = now;
+
+    // 暂停扫描，而不是停止
+    if(html5QrCode){
+        try {
+            html5QrCode.pause();
+        } catch(e) { console.error("暂停扫描失败", e); }
+    }
+
+    showToast(`识别到条码 ${decodedText}`);
+
+    // 检查条码是否存在
+    const code = decodedText.trim();
+    const existingRow = rawRows.find(row => row.code === code);
+    const statusElement = $('#barcodeStatus');
+
+    if (existingRow) {
+        let statusText = `<strong>${existingRow.name || '无品名'}</strong> (已在列表中)`;
+        statusElement.html(statusText).removeClass('text-warning').addClass('text-success');
+    } else {
+        statusElement.html('<strong>条码不在列表中。</strong><br>确认后将创建新条目。').removeClass('text-success').addClass('text-warning');
+    }
+
+    // 显示条码确认弹窗
+    $('#barcodeConfirmInput').val(code);
+    $('#barcodeConfirmContainer').removeClass('d-none');
+}
+
+function handleScanError(err){
+    // 忽略
+}
+
+function captureCurrentFrame(){
+    const video = $('#scanner-container video').get(0);
+    if(!video){return null;}
+    const canvas = document.createElement('canvas');
+    const maxW = 640;
+    const scale = video.videoWidth > maxW ? maxW / video.videoWidth : 1;
+    canvas.width = video.videoWidth * scale;
+    canvas.height = video.videoHeight * scale;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+    return canvas.toDataURL('image/png');
+}
+
+async function initOcrWorker () {
+    if (ocrWorkerReady)   return ocrWorkerReady;
+    if (ocrWorker)        return ocrWorker;
+
+    ocrWorkerReady = (async () => {
+        const worker = await Tesseract.createWorker(
+            "eng",
+            1,
+            { logger: m => console.log(m) }
+        );
+        ocrWorker = worker; 
+        return worker;
+    })();
+
+    return ocrWorkerReady;
+}
+
+async function runOCR (dataUrl) {
+    if (!dataUrl) return { dateStr: null, rawText: null };
+
+    try {
+        const worker = await initOcrWorker(); 
+        const { data: { text } } = await worker.recognize(dataUrl);
+        const raw   = text.trim();
+        const date  = extractDate(raw);
+        return { dateStr: date, rawText: raw };
+    } catch (e) {
+        console.error("OCR error", e);
+        return { dateStr: null, rawText: null };
+    }
+}
+
+function extractDate(text){
+    if(!text){return null;}
+    const monthMap = {jan:'01',feb:'02',mar:'03',apr:'04',may:'05',jun:'06',jul:'07',aug:'08',sep:'09',oct:'10',nov:'11',dec:'12'};
+    text = text.replace(/\n/g,' ');
+    let m;
+
+    function isValid(y,m,d){
+        y=parseInt(y); m=parseInt(m); d=parseInt(d);
+        if(y<2018||y>2028) return false;
+        if(m<1||m>12) return false;
+        const days=[31, (y%4===0&&y%100!==0)||y%400===0?29:28,31,30,31,30,31,31,30,31,30,31];
+        if(d<1||d>days[m-1]) return false;
+        return true;
+    }
+
+    // ① 带英文月份: "10 Feb 2025"
+    m = text.match(/\b(\d{1,2})\s*(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s*(20\d{2})\b/i);
+    if(m){
+        let day=m[1].padStart(2,'0');
+        let month=monthMap[m[2].substr(0,3).toLowerCase()];
+        let year=m[3];
+        if(isValid(year,month,day)) return `${year}-${month}-${day}`;
+    }
+
+    // ② 纯数字分隔: "04/11/2022" 、"04-11-2022" 或 "04.11.2022"
+    m = text.match(/\b(\d{1,2})[\/\.\-](\d{1,2})[\/\.\-](20\d{2})\b/);
+    if(m){
+        let day=m[1].padStart(2,'0');
+        let month=m[2].padStart(2,'0');
+        let year=m[3];
+        if(isValid(year,month,day)) return `${year}-${month}-${day}`;
+    }
+
+    return null;
+}
+
+function updateCountForCode(code){
+    let found = false;
+    inventoryTable.rows().every(function(){
+        const row = this.data();
+        if(row[0] === code){
+            const cnt = parseInt(row[1])||0;
+            row[1] = (cnt+1).toString();
+            this.data(row);
+            found = true;
+            return false;
+        }
+    });
+    if(!found){
+        // 创建新行
+        const newRow = [code,'1'];
+        dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push('0'); }});
+        inventoryTable.row.add(newRow).draw(false);
+    }
+}
+
+function updateCountForDate(code,dateStr){
+    // 找到合适的日期列索引
+    let colIdx = -1;
+    dateRanges.forEach((r,idx)=>{
+        if(r.hidden){return;}
+        if(isDateInRange(dateStr,r.start,r.end)){
+            // 表头: Code,Count 后面的顺序相同
+            colIdx = 2 + visibleRangeIndex(idx);
+        }
+    });
+    if(colIdx === -1){ return; }
+
+    // 更新表格
+    inventoryTable.rows().every(function(){
+        const row = this.data();
+        if(row[0] === code){
+            const cnt = parseInt(row[colIdx])||0;
+            row[colIdx] = (cnt+1).toString();
+            this.data(row);
+            return false;
+        }
+    });
+}
+
+function visibleRangeIndex(totalIdx){
+    // 计算到目前为止 visible 索引 (不包括隐藏列)
+    let v = -1;
+    for(let i=0;i<=totalIdx;i++){
+        if(!dateRanges[i].hidden){v++;}
+    }
+    return v;
+}
+
+function isDateInRange(dateStr,start,end){
+    const d = new Date(dateStr);
+    if(start && d < start){return false;}
+    if(end && d > end){return false;}
+    return true;
+}
+
+// ------------ 导出 & 复制 ------------
+function copyTable(){
+    const colCount = inventoryTable.columns().count();
+    let text='';
+    // header
+    inventoryTable.columns().every(function(idx){
+        text += $(inventoryTable.column(idx).header()).text() + (idx<colCount-1?'\t':'\n');
+    });
+    // body
+    inventoryTable.rows().every(function(){
+        const row = this.data();
+        for(let i=0;i<row.length;i++){
+            text += row[i] + (i<row.length-1?'\t':'\n');
+        }
+    });
+    copyToClipboard(text);
+    showToast('已复制到剪贴板');
+}
+
+function copyToClipboard(t){
+    const tmp=$('<textarea>');
+    tmp.val(t);$('body').append(tmp);tmp.select();document.execCommand('copy');tmp.remove();
+}
+
+function exportTable(){
+    const data = [];
+    // header
+    const header=[];
+    inventoryTable.columns().every(function(idx){header.push($(inventoryTable.column(idx).header()).text());});
+    data.push(header);
+    // body
+    inventoryTable.rows().every(function(){data.push(this.data());});
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Inventory');
+    XLSX.writeFile(wb,'inventory.xlsx');
+}
+
+// ------------ 工具函数 ------------
+function formatDate(d){
+    return d.toISOString().split('T')[0];
+}
+
+function showToast(msg, duration=2000){
+    const t = $('#toastMessage');
+    t.text(msg).removeClass('d-none');
+    clearTimeout(t.data('timeoutId'));
+    const id = setTimeout(()=>t.addClass('d-none'), duration);
+    t.data('timeoutId', id);
+}
+
+// 与模式 1 一致的扫描配置
+function getOptimalScanConfig() {
+    return {
+        fps: 30,
+        qrbox: {
+            width: 250, 
+            height: 100,
+        },
+        aspectRatio: 1.0,
+        disableFlip: false,
+        formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E
+        ],
+        experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+        },
+        videoConstraints: {
+            facingMode: "environment",
+            width:  { ideal: 1280 },
+            height: { ideal: 720 },
+            frameRate: { ideal: 30, max: 30 }
+        }
+    };
+}
+
+// OCR 模态框控制
+function openOcrModal(){
+    // 初始化 UI 状态
+    $('#ocrVideo').removeClass('d-none');         // 显示视频流
+    $('#ocrScannerBox').removeClass('d-none');    // 显示扫描框
+    $('#ocrResult').removeClass('d-none');        // 允许显示识别文本
+    $('#ocrConfirmArea').addClass('d-none').removeClass('quantity-modal');
+    $('#ocrResult').text('');
+    $('#ocrOverlayText').removeClass('d-none');
+    $('#ocrModal').modal('show');
+    $('#flashToggleInOcr').show();
+
+    // 确保任何关闭方式都能清理资源
+    $('#ocrModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {
+        cleanupOcrResources();
+    });
+
+    // 打开摄像头流
+    navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}).then(stream=>{
+        ocrStream = stream;
+        enableTorchOnStream(stream, flashlightEnabled); // 打开闪光灯
+        const videoEl = document.getElementById('ocrVideo');
+        videoEl.srcObject = stream;
+        videoEl.play();
+
+        // 连续每0.5s识别一次
+        ocrInterval = setInterval(()=>{
+            captureOcrFrame(videoEl).then(result=>{
+                const {dateStr,rawText}=result;
+                if(rawText){ $('#ocrResult').text(rawText); }
+                if(dateStr){
+                    clearInterval(ocrInterval);
+                    $('#ocrOverlayText').addClass('d-none');
+                    // 暂停并隐藏视频和绿框，防止遮挡
+                    videoEl.pause();
+                    $('#ocrVideo').addClass('d-none');
+                    $('#ocrScannerBox').addClass('d-none');
+
+                    // 隐藏原始OCR文本
+                    $('#ocrResult').addClass('d-none');
+
+                    $('#dateInput').val(dateStr);
+
+                    // 复用 mode1 的 quantity-modal 样式
+                    $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
+                }
+            });
+        }, 500);
+    }).catch(err=>{
+        showToast('无法打开摄像头');
+        closeOcrModal();
+    });
+
+    // 绑定确认按钮
+    $('#confirmDateBtn').off('click').on('click', function(){
+        const dateStr = $('#dateInput').val().trim();
+        if(dateStr){
+            updateCountForDate(currentCode, dateStr);
+            showToast(`已确认日期 ${dateStr}`);
+        }
+        closeOcrModal();
+    });
+
+    // 绑定重新识别按钮
+    $('#retryOcrBtn').off('click').on('click', function(){
+        // 恢复 UI
+        $('#ocrConfirmArea').addClass('d-none');
+        $('#ocrResult').removeClass('d-none').text('');
+        $('#ocrOverlayText').removeClass('d-none');
+        $('#ocrVideo').removeClass('d-none');
+        $('#ocrScannerBox').removeClass('d-none');
+
+        const videoEl=document.getElementById('ocrVideo');
+        if(videoEl.paused) videoEl.play();
+
+        // 重启 OCR 定时器
+        if(ocrInterval){clearInterval(ocrInterval);}
+        ocrInterval=setInterval(()=>{
+            captureOcrFrame(videoEl).then(res=>{
+                const {dateStr,rawText}=res;
+                if(rawText){ $('#ocrResult').text(rawText); }
+                if(dateStr){
+                    clearInterval(ocrInterval);
+                    $('#ocrOverlayText').addClass('d-none');
+                    videoEl.pause();
+                    $('#ocrVideo').addClass('d-none');
+                    $('#ocrScannerBox').addClass('d-none');
+                    $('#ocrResult').addClass('d-none');
+                    $('#dateInput').val(dateStr);
+                    $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
+                }
+            });
+        },500);
+    });
+
+    // 绑定手动输入按钮
+    $('#manualDateBtn').off('click').on('click',function(){
+        // 直接进入手动输入界面
+        if(ocrInterval){clearInterval(ocrInterval);} // 停止 OCR 定时器
+        const videoEl=document.getElementById('ocrVideo');
+        if(videoEl) videoEl.pause();
+
+        $('#ocrOverlayText').addClass('d-none');
+        $('#ocrScannerBox').addClass('d-none');
+        $('#ocrVideo').addClass('d-none');
+        $('#ocrResult').addClass('d-none');
+
+        $('#dateInput').val('');
+        $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
+    });
+}
+
+function cleanupOcrResources(){
+    if(ocrInterval){
+        clearInterval(ocrInterval);
+        ocrInterval=null;
+    }
+    if(ocrStream){
+        ocrStream.getTracks().forEach(t=>t.stop());
+        ocrStream=null;
+    }
+}
+
+function closeOcrModal(){
+    cleanupOcrResources();
+    if($('#ocrModal').is(':visible')){
+        $('#ocrModal').modal('hide');
+    }
+    scanningFlag=false;
+    $('#flashToggleInOcr').hide();
+}
+
+function captureOcrFrame(videoEl){
+    return new Promise(resolve=>{
+        if(!videoEl || videoEl.readyState<2){resolve({dateStr:null,rawText:null});return;}
+
+        // 获取框相对位置
+        const box=document.getElementById('ocrScannerBox');
+        const videoRect=videoEl.getBoundingClientRect();
+        const boxRect=box.getBoundingClientRect();
+
+        // 计算在视频像素中的坐标
+        const scaleX=videoEl.videoWidth / videoRect.width;
+        const scaleY=videoEl.videoHeight / videoRect.height;
+        const sx=(boxRect.left - videoRect.left)*scaleX;
+        const sy=(boxRect.top - videoRect.top)*scaleY;
+        const sw=boxRect.width*scaleX;
+        const sh=boxRect.height*scaleY;
+
+        const canvas=document.createElement('canvas');
+        canvas.width=sw; canvas.height=sh;
+        const ctx=canvas.getContext('2d');
+        ctx.drawImage(videoEl, sx, sy, sw, sh, 0, 0, sw, sh);
+        const dataUrl=canvas.toDataURL('image/png');
+        runOCR(dataUrl).then(result=>{
+            if(result.rawText){ console.log('OCR raw:', result.rawText); }
+            resolve(result);
+        });
+    });
+}
+
+// ========= 通用工具 =========
+function enableTorchOnStream(stream, state=true){
+    try{
+        const track = stream && stream.getVideoTracks()[0];
+        if(track){
+            const cap = track.getCapabilities && track.getCapabilities();
+            if(cap && cap.torch){
+                track.applyConstraints({advanced:[{torch: state}]}).catch(()=>{});
+            }
+        }
+    }catch(e){console.log('设置闪光灯失败',e);}
+}
+
+function applyTorchState(){
+    if(html5QrCode && html5QrCode.applyVideoConstraints){
+        html5QrCode.applyVideoConstraints({advanced:[{torch: flashlightEnabled}]}).catch(()=>{});
+    }
+    if(ocrStream){
+        enableTorchOnStream(ocrStream, flashlightEnabled);
+    }
+} 

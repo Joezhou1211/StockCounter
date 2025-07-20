@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>使用教程</title>
+    <!-- Bootstrap & FontAwesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 全局样式 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+        .hero {
+            background: #222;
+            color: #fff;
+            padding: 40px 0;
+            text-align: center;
+        }
+        .hero h1 {
+            font-weight: 600;
+            margin-bottom: .3rem;
+            font-size: 1.5rem;
+        }
+        .step-card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+            transition: transform .2s;
+        }
+        .step-card:hover{ transform: translateY(-5px); }
+        .step-card .card-body { padding: 1.5rem; }
+        .step-icon {
+            font-size: 2rem;
+            color: #4361ee;
+            margin-bottom: .75rem;
+        }
+        main{font-size:0.95rem;}
+        .home-fab{
+            position:fixed;
+            bottom:20px;
+            left:20px;
+            width:48px;
+            height:48px;
+            border-radius:50%;
+            background:#222;
+            color:#fff;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-size:1.25rem;
+            box-shadow:0 4px 12px rgba(0,0,0,0.25);
+            z-index:1500;
+        }
+        .home-fab:hover{background:#000;color:#fff;text-decoration:none;}
+    </style>
+</head>
+<body>
+    <main class="container my-5">
+        <h1 class="fw-bold mb-2" style="color: black !important;padding-bottom: 1rem; font-size: 2rem;">软件使用教程</h1>
+        <!-- ===== 详细操作流程 ===== -->
+        <section class="mb-5">
+            <h3 class="fw-bold mb-2"><i class="fas fa-boxes-stacked me-2"></i>盘点模式</h3>
+            <!-- Mode2 教学视频 -->
+            <div class="ratio ratio-16x9 mb-3">
+                <iframe class="rounded" src="https://www.youtube.com/embed/jfrv4BqKj_U" title="Mode2 Tutorial" allowfullscreen></iframe>
+            </div>
+            <ol class="lh-lg ps-3">
+                <li>在首页点击「盘点模式」。</li>
+                <li>步骤&nbsp;1：<strong>上传商品清单</strong>
+                    <ul>
+                        <li>点击「上传商品清单」并选择包含&nbsp;Code / Name / Count&nbsp;的文件。</li>
+                    </ul>
+                </li>
+                <li>步骤&nbsp;2：<strong>设定日期范围</strong>
+                    <ul>
+                        <li>选择开始 / 结束日期后点「确认」。可重复添加多个不重叠的范围。</li>
+                        <li>日期旁的「×」可删除对应范围。</li>
+                    </ul>
+                </li>
+                <li>步骤&nbsp;3：点击「完成配置，开始盘点」，系统生成带日期列的统计表。</li>
+                <li>盘点过程中可选择两种方式更新数量：
+                    <ul>
+                        <li><strong>扫描条码</strong>：
+                            <ol class="mt-2">
+                                <li>点击底部「扫描」> 对准条码（可能需要调整角度）。</li>
+                                <li>出现「确认条码」窗口，可修改后点击「确认并识别日期」。</li>
+                                <li>摄像头会切换到日期识别，框住日期直至识别（可能需要调整角度）。</li>
+                                <li>确认日期后，系统将对应单元格数量&nbsp;+1。</li>
+                            </ol>
+                        </li>
+                        <li><strong>直接编辑</strong>：点击任意单元格，输入数量后失焦即可保存。</li>
+                    </ul>
+                </li>
+                <li>盘点结束后，同样可使用底部「复制」或「导出」输出结果。强烈建议导出。</li>
+            </ol>
+        </section>
+
+        <section>
+            <h3 class="fw-bold mb-2"><i class="fas fa-list-ul me-2"></i>点货模式</h3>
+            <!-- Mode1 视频占位 -->
+            <div class="ratio ratio-16x9 mb-3">
+                <div class="d-flex align-items-center justify-content-center bg-light text-muted">Mode&nbsp;1&nbsp;视频即将上线</div>
+            </div>
+            <ol class="lh-lg ps-3">
+                <li>在首页点击「点货模式」。</li>
+                <li>点击底部「扫描」按钮，首次会弹出摄像头画面。</li>
+                <li>对准商品条码，系统识别后会弹出「数量调整」窗口：
+                    <ul>
+                        <li>如需修改条码，可直接点选并编辑。</li>
+                        <li>使用「+／-」按钮调节数量，或直接在表格里修改。</li>
+                        <li>确认无误后点击「确定」完成添加。</li>
+                    </ul>
+                </li>
+                <li>如条码无法扫描，可点击「手动添加」，在新增行中手动输入 Code 与数量。</li>
+                <li>全部录入完成后：
+                    <ul>
+                        <li>点击「复制」将整表内容复制到剪贴板。</li>
+                        <li>点击「导出」生成&nbsp;Excel&nbsp;文件。</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+    </main>
+
+    <!-- 悬浮返回按钮 -->
+    <a href="/" class="home-fab" title="返回首页"><i class="fas fa-home"></i></a>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
