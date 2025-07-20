@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- 禁止双指放大和双击放大，max-scale=1.0 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>点货系统</title>
+    <title><span class="lang-zh">点货系统</span><span class="lang-en">Stock Counter</span></title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -96,15 +96,15 @@
 
     <!-- Toast 消息，移除动画以减轻渲染负担 -->
     <div id="toastMessage" class="toast-message d-none">
-        <i class="fas fa-check-circle"></i> 添加成功
+        <i class="fas fa-check-circle"></i> <span class="lang-zh">添加成功</span><span class="lang-en">Added</span>
     </div>
 
     <!-- 加载指示器 -->
     <div id="loadingIndicator" class="loading-indicator d-none">
         <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">加载中...</span>
+            <span class="visually-hidden"><span class="lang-zh">加载中...</span><span class="lang-en">Loading...</span></span>
         </div>
-        <p>正在启动摄像头...</p>
+        <p><span class="lang-zh">正在启动摄像头...</span><span class="lang-en">Starting camera...</span></p>
     </div>
 
     <!-- JS 引入 -->
