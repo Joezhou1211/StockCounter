@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <!-- 禁止双指放大和双击放大，max-scale=1.0 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title><span class="lang-zh">点货系统</span><span class="lang-en">Stock Counter</span></title>
+    <title id="pageTitle">点货系统</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
@@ -118,5 +118,12 @@
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <div id="langToggle" class="lang-fab"><i class="fas fa-language"></i></div>
     <script src="{{ url_for('static', filename='lang.js') }}"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded',function(){
+        function setTitle(){ document.title = t('点货系统','Stock Counter'); }
+        setTitle();
+        document.body.addEventListener('langChanged', setTitle);
+    });
+    </script>
 </body>
 </html>

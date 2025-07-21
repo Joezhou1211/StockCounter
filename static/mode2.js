@@ -12,9 +12,17 @@ let ocrWorkerReady  = null;
 let scanningFlag = false; 
 let flashlightEnabled = false; // 手电筒状态
 
+function updatePlaceholders(){
+    $('#codeSearch').attr('placeholder', t('搜索 Code ...','Search Code ...'));
+    if($('#scrollHint').length){
+        $('#scrollHint').html('<span class="lang-zh">← 左右滑动查看更多列 →</span><span class="lang-en">← Swipe left/right for more columns →</span>');
+    }
+}
 
 // ------------ 文件上传与表格初始化 ------------
 $(document).ready(function(){
+    updatePlaceholders();
+    document.body.addEventListener('langChanged', updatePlaceholders);
     // 处理文件上传
     $('#fileUpload').on('change', function(e){
         const file = e.target.files[0];
@@ -26,7 +34,7 @@ $(document).ready(function(){
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const json = XLSX.utils.sheet_to_json(sheet, {header: 1});
             parseSheet(json);
-            showToast('文件读取成功');
+            showToast(t('文件读取成功','File read successfully'));
         };
         reader.readAsArrayBuffer(file);
     });
@@ -36,18 +44,18 @@ $(document).ready(function(){
         const s = $('#startDate').val();
         const e = $('#endDate').val();
         if(!s && !e){
-            alert('请至少设置开始或结束日期');
+            alert(t('请至少设置开始或结束日期','Please set start or end date'));
             return;
         }
         const start = s ? new Date(s) : null;
         const end   = e ? new Date(e) : null;
         if(start && end && start > end){
-            alert('开始日期不能晚于结束日期');
+            alert(t('开始日期不能晚于结束日期','Start date cannot be after end date'));
             return;
         }
         // 检查重叠
         if(isOverlap(start,end)){
-            alert('日期范围与现有范围重叠');
+            alert(t('日期范围与现有范围重叠','Range overlaps existing one'));
             return;
         }
         const label = buildLabel(start,end);
@@ -60,11 +68,11 @@ $(document).ready(function(){
     // 完成配置
     $('#finishSetupBtn').on('click', function(){
         if(rawRows.length === 0){
-            alert('请先上传商品清单');
+            alert(t('请先上传商品清单','Please upload product list first'));
             return;
         }
         if(dateRanges.length === 0){
-            alert('请至少添加一个日期范围');
+            alert(t('请至少添加一个日期范围','Please add at least one date range'));
             return;
         }
         // 构建表头
@@ -81,8 +89,9 @@ $(document).ready(function(){
 
         // 显示左右滑动提示（3秒后自动消失，仅首次创建）
         if(!$('#scrollHint').length){
-            const hint=$('<div id="scrollHint" class="scroll-hint" style="bottom:30%!important;">← 左右滑动查看更多列 →</div>');
+            const hint=$('<div id="scrollHint" class="scroll-hint" style="bottom:30%!important;"></div>');
             $('#tableSection').css('position','relative').append(hint);
+            updatePlaceholders();
             setTimeout(()=>hint.fadeOut(800,()=>hint.remove()), 4000);
         }
     });
@@ -96,7 +105,7 @@ $(document).ready(function(){
     $('#confirmBarcodeBtn').on('click', function(){
         const code = $('#barcodeConfirmInput').val().trim();
         if (!code) {
-            showToast('条码不能为空');
+            showToast(t('条码不能为空','Barcode cannot be empty'));
             return;
         }
         updateCountForCode(code);
@@ -123,7 +132,9 @@ $(document).ready(function(){
 
     // 关闭 OCR 模态按钮
     $('#closeOcr').on('click', function(){
-        const msg = currentCode ? `当前商品 ${currentCode} 已添加，日期将会留空。确认关闭？` : '确认关闭日期识别？';
+        const msg = currentCode
+            ? t(`当前商品 ${currentCode} 已添加，日期将会留空。确认关闭？`,`Item ${currentCode} added without date. Close?`)
+            : t('确认关闭日期识别？','Close date recognition?');
         if(confirm(msg)){
             closeOcrModal();
         }
@@ -131,7 +142,7 @@ $(document).ready(function(){
 
     // 刷新 / 关闭提示
     window.onbeforeunload = function(){
-        return '确定要刷新或关闭吗？未保存的数据可能会丢失。';
+        return t('确定要刷新或关闭吗？未保存的数据可能会丢失。','Leave page? Unsaved data may be lost.');
     };
 
     // 手电筒开关
@@ -173,7 +184,7 @@ function parseSheet(rows){
         if(['count'].includes(key)){colIndex.count=idx;}
     });
     if(colIndex.code === -1){
-        alert('未检测到 Code 列');
+        alert(t('未检测到 Code 列','Code column not found'));
         return;
     }
     // 解析行
@@ -305,7 +316,7 @@ function buildTable(){
     // 手动添加按钮
     $('#addManualBtn').off('click').on('click', function(){
         // 构造空行：Code 默认"新数据"，Count 0，其余列留空
-        const newRow = ['新数据','0'];
+        const newRow = [t('新数据','New'), '0'];
         dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push(''); }});
         inventoryTable.row.add(newRow).draw(false);
         inventoryTable.page('last').draw('page');
@@ -340,7 +351,7 @@ function startScanner(){
             // 尝试开启闪光灯
             applyTorchState();
         })
-        .catch(err=>{ console.log(err); showToast('摄像头启动失败'); scanning=false; });
+        .catch(err=>{ console.log(err); showToast(t('摄像头启动失败','Failed to start camera')); scanning=false; });
 }
 
 function stopScanner(){
@@ -364,7 +375,7 @@ function handleBarcode(decodedText,decodedResult){
         } catch(e) { console.error("暂停扫描失败", e); }
     }
 
-    showToast(`识别到条码 ${decodedText}`);
+    showToast(t(`识别到条码 ${decodedText}`,`Barcode detected ${decodedText}`));
 
     // 检查条码是否存在
     const code = decodedText.trim();
@@ -372,10 +383,10 @@ function handleBarcode(decodedText,decodedResult){
     const statusElement = $('#barcodeStatus');
 
     if (existingRow) {
-        let statusText = `<strong>${existingRow.name || '无品名'}</strong> (已在列表中)`;
+        let statusText = `<strong>${existingRow.name || t('无品名','No name')}</strong> (${t('已在列表中','Already in list')})`;
         statusElement.html(statusText).removeClass('text-warning').addClass('text-success');
     } else {
-        statusElement.html('<strong>条码不在列表中。</strong><br>确认后将创建新条目。').removeClass('text-success').addClass('text-warning');
+        statusElement.html(`<strong>${t('条码不在列表中。','Barcode not in list.')}</strong><br>${t('确认后将创建新条目。','A new entry will be created.')}`).removeClass('text-success').addClass('text-warning');
     }
 
     // 显示条码确认弹窗
@@ -543,7 +554,7 @@ function copyTable(){
         }
     });
     copyToClipboard(text);
-    showToast('已复制到剪贴板');
+    showToast(t('已复制到剪贴板','Copied to clipboard'));
 }
 
 function copyToClipboard(t){
@@ -616,8 +627,8 @@ function openOcrModal(){
     $('#ocrResult').removeClass('d-none');        // 允许显示识别文本
     $('#ocrConfirmArea').addClass('d-none').removeClass('quantity-modal');
     $('#ocrResult').text('');
-    $('#confirmTitle').text('确认日期');
-    $('#confirmDesc').text('识别到日期如下(可修改)');
+    $('#confirmTitle').html('<span class="lang-zh">确认日期</span><span class="lang-en">Confirm Date</span>');
+    $('#confirmDesc').html('<span class="lang-zh">识别到日期如下(可修改)</span><span class="lang-en">Recognized date below (editable)</span>');
     $('#selectedRangeDisplay').addClass('d-none');
     $('#dateInput').removeClass('d-none');
     $('#ocrOverlayText').removeClass('d-none');
@@ -661,7 +672,7 @@ function openOcrModal(){
             });
         }, 500);
     }).catch(err=>{
-        showToast('无法打开摄像头');
+        showToast(t('无法打开摄像头','Unable to open camera'));
         closeOcrModal();
     });
 
@@ -670,7 +681,7 @@ function openOcrModal(){
         const dateStr = $('#dateInput').val().trim();
         if(dateStr){
             updateCountForDate(currentCode, dateStr);
-            showToast(`已确认日期 ${dateStr}`);
+            showToast(t(`已确认日期 ${dateStr}`,`Date confirmed ${dateStr}`));
         }
         closeOcrModal();
     });
@@ -793,7 +804,7 @@ function generateManualOptions(){
         btn.on('click',()=>openRangeConfirm(i));
         buttons.append(btn);
     });
-    container.append('<h5 class="mb-3">请选择时间段</h5>');
+    container.append('<h5 class="mb-3"><span class="lang-zh">请选择时间段</span><span class="lang-en">Select a range</span></h5>');
     container.append(buttons);
 }
 
@@ -803,8 +814,8 @@ function openRangeConfirm(idx){
     if(!opt){return;}
 
     $('#manualSelectArea').addClass('d-none');
-    $('#confirmTitle').text('确认时间段');
-    $('#confirmDesc').text('已选择时间段如下');
+    $('#confirmTitle').html('<span class="lang-zh">确认时间段</span><span class="lang-en">Confirm Range</span>');
+    $('#confirmDesc').html('<span class="lang-zh">已选择时间段如下</span><span class="lang-en">Selected range</span>');
     $('#dateInput').addClass('d-none');
     $('#selectedRangeDisplay').removeClass('d-none').text(opt.label);
     $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
@@ -815,12 +826,12 @@ function openRangeConfirm(idx){
         closeOcrModal();
     });
 
-    $('#retryOcrBtn').text('重新选择').off('click').on('click',function(){
+    $('#retryOcrBtn').text(t('重新选择','Choose again')).off('click').on('click',function(){
         $('#ocrConfirmArea').addClass('d-none');
         $('#selectedRangeDisplay').addClass('d-none');
         $('#dateInput').removeClass('d-none');
-        $('#confirmTitle').text('确认日期');
-        $('#confirmDesc').text('识别到日期如下(可修改)');
+        $('#confirmTitle').html('<span class="lang-zh">确认日期</span><span class="lang-en">Confirm Date</span>');
+        $('#confirmDesc').html('<span class="lang-zh">识别到日期如下(可修改)</span><span class="lang-en">Recognized date below (editable)</span>');
         generateManualOptions();
         $('#manualSelectArea').removeClass('d-none');
     });
