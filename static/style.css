@@ -780,3 +780,27 @@ h1 {
     z-index:1500;
 }
 .lang-fab:hover{background:#3554d1;color:#fff;text-decoration:none;}
+
+
+/* Backdrop for manual date selection */
+#manualBackdrop{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.5);
+    z-index:1450;
+}
+
+#rangeButtons .btn{
+    border-radius: 12px;
+    padding: .6rem 1rem;
+    font-weight: 600;
+    border: 1px solid var(--primary-color);
+    background:#fff;
+    color:var(--primary-color);
+    transition:all .25s;
+}
+#rangeButtons .btn:hover{
+    background:var(--primary-color);
+    color:#fff;
+    box-shadow:0 4px 12px rgba(0,0,0,.15);
+}

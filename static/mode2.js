@@ -15,7 +15,7 @@ let flashlightEnabled = false; // 手电筒状态
 function updatePlaceholders(){
     $('#codeSearch').attr('placeholder', t('搜索 Code ...','Search Code ...'));
     if($('#scrollHint').length){
-        $('#scrollHint').html('<span class="lang-zh">← 左右滑动查看更多列 →</span><span class="lang-en">← Swipe left/right for more columns →</span>');
+        $('#scrollHint').html('<span class="lang-en">← Swipe for more columns →</span>');
     }
 }
 
@@ -148,11 +148,11 @@ $(document).ready(function(){
     // 手电筒开关
     function updateFlashBtnUI(){
         if(flashlightEnabled){
-            $('#flashToggle').removeClass('btn-danger').addClass('btn-success').find('span').text('开');
+            $('#flashToggle').removeClass('btn-danger').addClass('btn-success').find('span').text(t('开','On'));
             $('#flashToggleDuringScan').removeClass('btn-danger').addClass('btn-success');
             $('#flashToggleInOcr').removeClass('btn-danger').addClass('btn-success');
         }else{
-            $('#flashToggle').removeClass('btn-success').addClass('btn-danger').find('span').text('关');
+            $('#flashToggle').removeClass('btn-success').addClass('btn-danger').find('span').text(t('关','Off'));
             $('#flashToggleDuringScan').removeClass('btn-success').addClass('btn-danger');
             $('#flashToggleInOcr').removeClass('btn-success').addClass('btn-danger');
         }
@@ -316,7 +316,7 @@ function buildTable(){
     // 手动添加按钮
     $('#addManualBtn').off('click').on('click', function(){
         // 构造空行：Code 默认"新数据"，Count 0，其余列留空
-        const newRow = [t('新数据','New'), '0'];
+        const newRow = [t('新数据','New Data'), '0'];
         dateRanges.forEach(r=>{ if(!r.hidden){ newRow.push(''); }});
         inventoryTable.row.add(newRow).draw(false);
         inventoryTable.page('last').draw('page');
@@ -581,6 +581,10 @@ function formatDate(d){
     return d.toISOString().split('T')[0];
 }
 
+function stripTags(html){
+    return html.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+}
+
 function showToast(msg, duration=2000){
     const t = $('#toastMessage');
     t.text(msg).removeClass('d-none');
@@ -694,6 +698,8 @@ function openOcrModal(){
         $('#ocrOverlayText').removeClass('d-none');
         $('#ocrVideo').removeClass('d-none');
         $('#ocrScannerBox').removeClass('d-none');
+        $('#manualBackdrop').addClass('d-none');
+        $('#manualDateBtn').prop('disabled', false);
 
         const videoEl=document.getElementById('ocrVideo');
         if(videoEl.paused) videoEl.play();
@@ -731,6 +737,8 @@ function openOcrModal(){
 
         generateManualOptions();
         $('#manualSelectArea').removeClass('d-none').addClass('quantity-modal');
+        $('#manualBackdrop').removeClass('d-none');
+        $('#manualDateBtn').prop('disabled', true);
     });
 }
 
@@ -750,6 +758,10 @@ function closeOcrModal(){
     if($('#ocrModal').is(':visible')){
         $('#ocrModal').modal('hide');
     }
+    $('#manualBackdrop').addClass('d-none');
+    $('#manualDateBtn').prop('disabled', false);
+    $('#manualSelectArea').addClass('d-none');
+    $('#ocrConfirmArea').addClass('d-none');
     scanningFlag=false;
     $('#flashToggleInOcr').hide();
 }
@@ -788,23 +800,47 @@ function generateManualOptions(){
     const container = $('#manualSelectArea');
     container.empty();
     const buttons = $('<div id="rangeButtons" class="d-grid gap-2"></div>');
-    const visible = dateRanges.filter(r=>!r.hidden);
+    const visible = dateRanges.filter(r => !r.hidden);
+
+    // 检查现有范围中是否已包含 Before / After
+    const hasBefore = visible.some(r => !r.start && r.end);   // only end defined → Before
+    const hasAfter  = visible.some(r => r.start && !r.end);   // only start defined → After
+
+    // 取所有 start / end，用于生成缺失的边界选项
+    const starts = visible.filter(r => r.start).map(r => r.start.getTime());
+    const ends   = visible.filter(r => r.end).map(r => r.end.getTime());
+    const minStart = starts.length ? new Date(Math.min(...starts)) : null;
+    const maxEnd   = ends.length ? new Date(Math.max(...ends)) : null;
+
     const opts = [];
-    if(visible.length && visible[0].start){
-        opts.push({label:`Before ${formatDate(visible[0].start)}`,start:null,end:visible[0].start});
+
+    // 如果没有 Before，就补一个最左侧 Before
+    if (!hasBefore && minStart) {
+        opts.push({
+            label: buildLabel(null, minStart),
+            start: null,
+            end:   minStart
+        });
     }
-    visible.forEach(r=>opts.push({label:r.label,start:r.start,end:r.end}));
-    const last = visible[visible.length-1];
-    if(last && last.end){
-        opts.push({label:`After ${formatDate(last.end)}`,start:last.end,end:null});
+
+    // 保持用户定义顺序添加中间范围
+    visible.forEach(r => opts.push({ label: r.label, start: r.start, end: r.end }));
+
+    // 如果没有 After，就补一个最右侧 After
+    if (!hasAfter && maxEnd) {
+        opts.push({
+            label: buildLabel(maxEnd, null),
+            start: maxEnd,
+            end:   null
+        });
     }
     container.data('opts', opts);
     opts.forEach((o,i)=>{
-        const btn=$(`<button class="btn btn-outline-light text-dark"></button>`).text(o.label);
+        const btn = $(`<button class="btn btn-outline-light text-dark w-100"></button>`).html(o.label);
         btn.on('click',()=>openRangeConfirm(i));
         buttons.append(btn);
     });
-    container.append('<h5 class="mb-3"><span class="lang-zh">请选择时间段</span><span class="lang-en">Select a range</span></h5>');
+    container.append('<h5 class="mb-3">Select a range</h5>');
     container.append(buttons);
 }
 
@@ -814,13 +850,13 @@ function openRangeConfirm(idx){
     if(!opt){return;}
 
     $('#manualSelectArea').addClass('d-none');
-    $('#confirmTitle').html('<span class="lang-zh">确认时间段</span><span class="lang-en">Confirm Range</span>');
-    $('#confirmDesc').html('<span class="lang-zh">已选择时间段如下</span><span class="lang-en">Selected range</span>');
+    $('#confirmTitle').html('<span>Confirm Range</span>');
+    $('#confirmDesc').html('<span>Selected range</span>');
     $('#dateInput').addClass('d-none');
-    $('#selectedRangeDisplay').removeClass('d-none').text(opt.label);
-    $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal');
+    $('#selectedRangeDisplay').removeClass('d-none').addClass('text-dark fw-bold').text(stripTags(opt.label));
+    $('#ocrConfirmArea').removeClass('d-none').addClass('quantity-modal text-dark');
 
-    $('#confirmDateBtn').off('click').on('click',function(){
+    $('#confirmDateBtn').text(t('确认','Confirm')).off('click').on('click',function(){
         const d = getDateForOption(opt);
         updateCountForDate(currentCode, d);
         closeOcrModal();

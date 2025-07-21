@@ -60,7 +60,7 @@
         <div class="mb-3">
             <label for="fileUpload" class="form-label fw-bold"><span class="lang-zh">1. 上传商品清单 (Excel / CSV)</span><span class="lang-en">1. Upload Product List (Excel/CSV)</span></label>
             <input class="form-control" type="file" id="fileUpload" accept=".xlsx,.xls,.csv">
-            <p class="small text-muted mt-1"><span class="lang-zh">支持的日期格式：11 DEC 2024，11/12/2024，11.12.2014。其他格式请手动选择日期。</span><span class="lang-en">Supported date formats: 11 DEC 2024, 11/12/2024, 11.12.2014. Other formats please choose manually.</span></p>
+            <p class="small text-muted mt-1"><span class="lang-zh"></span><span class="lang-en"></span></p>
         </div>
 
         <div class="mb-3">
@@ -88,6 +88,7 @@
                     <span class="lang-zh">关</span><span class="lang-en">Off</span>
                 </button>
             </div>
+            <p class="small text-muted mt-1"><span class="lang-zh">* 手电筒仅在扫描时有效</span><span class="lang-en">* Flashlight only works during scanning</span></p>
 
             <!-- 深色模式已移除 -->
         </div>
@@ -131,7 +132,7 @@
 <!-- 底部按钮 -->
 <div id="actionButtons" class="bottom-buttons d-none">
     <button id="exportBtn" class="btn btn-success btn-sm"><i class="fas fa-file-export"></i> <span class="lang-zh">导出</span><span class="lang-en">Export</span></button>
-    <button id="langToggle" class="btn btn-secondary btn-sm"><i class="fas fa-language"></i></button>
+    <button id="langToggle" class="btn btn-secondary btn-sm"><i class="fas fa-language"></i><span class="lang-zh">language</span><span class="lang-en">language</span></button>
     <button id="scanBtn" class="btn btn-primary btn-sm"><i class="fas fa-barcode"></i> <span class="lang-zh">扫描</span><span class="lang-en">Scan</span></button>
 </div>
 
@@ -186,16 +187,17 @@
                 <button id="flashToggleInOcr" class="btn btn-danger position-absolute start-50 translate-middle-x" style="bottom: 12%; z-index: 1101; width: 48px; height:48px; border-radius:50%; display:none;">
                     <i class="fas fa-lightbulb"></i>
                 </button>
-                <div id="ocrOverlayText" class="position-absolute top-0 start-50 translate-middle-x mt-3"><span class="lang-zh">正在识别日期，请移动镜头对准日期...</span><span class="lang-en">Detecting date, please align the camera...</span></div>
+                <div id="ocrOverlayText" class="position-absolute top-0 start-50 translate-middle-x mt-5">Supported formats: [DD MM YYYY], [DD/MM/YYYY], [DD.MM.YYYY]<br>For other formats, please select date manually.</div>
+                <div id="manualBackdrop" class="manual-backdrop d-none"></div>
                 <div id="manualSelectArea" class="d-none mt-4 text-center"></div>
                 <div class="mt-4 d-none" id="ocrConfirmArea">
-                    <h5 class="mb-3" id="confirmTitle"><span class="lang-zh">确认日期</span><span class="lang-en">Confirm Date</span></h5>
-                    <p class="text-muted small mb-2" id="confirmDesc"><span class="lang-zh">识别到日期如下(可修改)</span><span class="lang-en">Recognized date below (editable)</span></p>
+                    <h5 class="mb-3" id="confirmTitle">Confirm Date</h5>
+                    <p class="text-muted small mb-2" id="confirmDesc">Recognized date below (editable)</p>
                     <input type="date" id="dateInput" class="form-control text-center mb-2"/>
                     <div id="selectedRangeDisplay" class="mb-2 d-none"></div>
                     <div class="d-grid gap-2">
-                        <button id="confirmDateBtn" class="btn btn-success"><span class="lang-zh">确认</span><span class="lang-en">Confirm</span></button>
-                        <button id="retryOcrBtn" class="btn btn-secondary"><span class="lang-zh">重新识别</span><span class="lang-en">Retry</span></button>
+                        <button id="confirmDateBtn" class="btn btn-success"><span class="lang-zh">Confirm</span><span class="lang-en">Confirm</span></button>
+                        <button id="retryOcrBtn" class="btn btn-secondary"><span class="lang-zh">Retry</span><span class="lang-en">Retry</span></button>
                     </div>
                 </div>
                 <h4 id="ocrResult" class="mt-3"></h4>
