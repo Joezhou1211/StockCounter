@@ -150,6 +150,16 @@
                 <button id="flashToggleDuringScan" class="btn btn-danger position-absolute start-50 translate-middle-x" style="bottom: 12%; z-index: 1101; width: 48px; height:48px; border-radius:50%; display:none;">
                     <i class="fas fa-lightbulb"></i>
                 </button>
+                <!-- Zoom Controls -->
+                <div id="zoomControls" class="btn-group position-absolute start-50 translate-middle-x" style="bottom: 25%; z-index: 1101;">
+                    <button class="btn btn-sm zoom-btn btn-primary" data-zoom="1">1x</button>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="1.5">1.5x</button>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="2">2x</button>
+                </div>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="1">1x</button>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="1.5">1.5x</button>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="2">2x</button>
+                </div>
                 <!-- Loading Indicator -->
                 <div id="loadingIndicator" class="loading-indicator d-none">
                     <div class="spinner-border text-light" role="status"></div>
@@ -187,6 +197,12 @@
                 <button id="flashToggleInOcr" class="btn btn-danger position-absolute start-50 translate-middle-x" style="bottom: 12%; z-index: 1101; width: 48px; height:48px; border-radius:50%; display:none;">
                     <i class="fas fa-lightbulb"></i>
                 </button>
+                <!-- OCR Zoom Controls -->
+                <div id="ocrZoomControls" class="btn-group position-absolute" style="bottom: 4%; left: 4%; z-index:1101; display:none;">
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="1">1x</button>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="1.5">1.5x</button>
+                    <button class="btn btn-light btn-sm zoom-btn" data-zoom="2">2x</button>
+                </div>
                 <div id="ocrOverlayText" class="position-absolute top-0 start-50 translate-middle-x mt-5">Supported formats: [DD MM YYYY], [DD/MM/YYYY], [DD.MM.YYYY]<br>For other formats, please select date manually.</div>
                 <div id="manualBackdrop" class="manual-backdrop d-none"></div>
                 <div id="manualSelectArea" class="d-none mt-4 text-center"></div>

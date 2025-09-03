@@ -9,8 +9,9 @@ let ocrInterval = null;
 let currentCode = null;
 let ocrWorker = null; 
 let ocrWorkerReady  = null; 
-let scanningFlag = false; 
+let scanningFlag = false;
 let flashlightEnabled = false; // 手电筒状态
+let currentZoom = 1;           // 全局变焦倍数
 
 function updatePlaceholders(){
     $('#codeSearch').attr('placeholder', t('搜索 Code ...','Search Code ...'));
@@ -168,6 +169,20 @@ $(document).ready(function(){
         applyTorchState();
         updateFlashBtnUI();
     });
+
+    // Zoom button events
+    function updateZoomButtons(){
+        $('.zoom-btn').removeClass('btn-primary').addClass('btn-light');
+        $(`.zoom-btn[data-zoom="${currentZoom}"]`).removeClass('btn-light').addClass('btn-primary');
+    }
+
+    $('.zoom-btn').on('click',function(){
+        currentZoom = parseFloat($(this).data('zoom'));
+        updateZoomButtons();
+        applyZoomToActiveCamera();
+    });
+
+    updateZoomButtons();
 
     // 初始化按钮状态
     updateFlashBtnUI();
@@ -330,12 +345,15 @@ function openScanner(){
     // 显示扫描手电筒按钮
     $('#flashToggleDuringScan').show();
     $('#flashToggleInOcr').hide();
+    $('#zoomControls').show();
+    $('#ocrZoomControls').hide();
 }
 
 function closeScannerModal(){
     $('#scannerModal').modal('hide');
     stopScanner();
     $('#flashToggleDuringScan').hide();
+    $('#zoomControls').hide();
 }
 
 function startScanner(){
@@ -350,6 +368,7 @@ function startScanner(){
             $('#loadingIndicator').addClass('d-none');
             // 尝试开启闪光灯
             applyTorchState();
+            applyZoomToActiveCamera();
         })
         .catch(err=>{ console.log(err); showToast(t('摄像头启动失败','Failed to start camera')); scanning=false; });
 }
@@ -638,6 +657,8 @@ function openOcrModal(){
     $('#ocrOverlayText').removeClass('d-none');
     $('#ocrModal').modal('show');
     $('#flashToggleInOcr').show();
+    $('#ocrZoomControls').show();
+    $('#zoomControls').hide();
 
     // 确保任何关闭方式都能清理资源
     $('#ocrModal').off('hidden.bs.modal').on('hidden.bs.modal', function () {
@@ -650,7 +671,9 @@ function openOcrModal(){
         enableTorchOnStream(stream, flashlightEnabled); // 打开闪光灯
         const videoEl = document.getElementById('ocrVideo');
         videoEl.srcObject = stream;
+        videoEl.onloadedmetadata = () => applyZoom(videoEl);
         videoEl.play();
+        applyZoom(videoEl);
 
         // 连续每0.5s识别一次
         ocrInterval = setInterval(()=>{
@@ -764,6 +787,7 @@ function closeOcrModal(){
     $('#ocrConfirmArea').addClass('d-none');
     scanningFlag=false;
     $('#flashToggleInOcr').hide();
+    $('#ocrZoomControls').hide();
 }
 
 function captureOcrFrame(videoEl){
@@ -903,4 +927,31 @@ function applyTorchState(){
     if(ocrStream){
         enableTorchOnStream(ocrStream, flashlightEnabled);
     }
-} 
+}
+
+function applyZoom(videoEl){
+    if(!videoEl) return;
+    try{
+        const track = videoEl.srcObject && videoEl.srcObject.getVideoTracks && videoEl.srcObject.getVideoTracks()[0];
+        if(track){
+            const cap = track.getCapabilities ? track.getCapabilities() : {};
+            if(cap.zoom){
+                let zoom = currentZoom;
+                if(cap.max && zoom > cap.max) zoom = cap.max;
+                if(cap.min && zoom < cap.min) zoom = cap.min;
+                track.applyConstraints({advanced:[{zoom: zoom}]}).catch(()=>{});
+            }else{
+                videoEl.style.transform = `scale(${currentZoom})`;
+            }
+        }else{
+            videoEl.style.transform = `scale(${currentZoom})`;
+        }
+    }catch(e){
+        videoEl.style.transform = `scale(${currentZoom})`;
+    }
+}
+
+function applyZoomToActiveCamera(){
+    applyZoom(document.querySelector('#scanner-container video'));
+    applyZoom(document.getElementById('ocrVideo'));
+}
